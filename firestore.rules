@@ -1,0 +1,289 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ─── Helper Functions ────────────────────────────────────────────────────
+
+    // Caller is authenticated
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Caller owns the document under users/{userId}
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Incoming data has all required keys
+    function hasFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    // Incoming data does NOT include forbidden keys
+    function noExtraFields(allowed) {
+      return request.resource.data.keys().hasOnly(allowed);
+    }
+
+    // Value is a non-empty string
+    function isNonEmptyString(val) {
+      return val is string && val.size() > 0;
+    }
+
+    // Value is an integer within [min, max]
+    function isIntInRange(val, min, max) {
+      return val is int && val >= min && val <= max;
+    }
+
+    // ─── Root: deny everything unless explicitly matched ─────────────────────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // ─── users/{userId} ──────────────────────────────────────────────────────
+    match /users/{userId} {
+      allow read:   if isOwner(userId);
+      allow create: if isOwner(userId)
+                    && hasFields(['uid', 'name', 'email', 'createdAt'])
+                    && isNonEmptyString(request.resource.data.name)
+                    && isNonEmptyString(request.resource.data.email)
+                    && request.resource.data.uid == userId;
+      allow update: if isOwner(userId)
+                    && request.resource.data.uid == userId;
+      allow delete: if isOwner(userId);
+
+      // ── settings ────────────────────────────────────────────────────────
+      match /settings/{docId} {
+        allow read:   if isOwner(userId);
+        allow write:  if isOwner(userId)
+                      && noExtraFields([
+                           'theme', 'accentColor', 'notificationsEnabled',
+                           'reminderSound', 'vibration', 'weekStartsOn',
+                           'backupEnabled', 'firebaseConnected', 'updatedAt'
+                         ]);
+      }
+
+      // ── tasks ────────────────────────────────────────────────────────────
+      match /tasks/{taskId} {
+        allow read:   if isOwner(userId);
+        allow create: if isOwner(userId)
+                      && hasFields(['title', 'priority', 'status', 'labels', 'subtasks', 'createdAt', 'updatedAt'])
+                      && isNonEmptyString(request.resource.data.title)
+                      && request.resource.data.priority in ['low', 'medium', 'high']
+                      && request.resource.data.status in ['pending', 'in-progress', 'completed', 'archived']
+                      && request.resource.data.labels is list
+                      && request.resource.data.subtasks is list;
+        allow update: if isOwner(userId)
+                      && isNonEmptyString(request.resource.data.title)
+                      && request.resource.data.priority in ['low', 'medium', 'high']
+                      && request.resource.data.status in ['pending', 'in-progress', 'completed', 'archived'];
+        allow delete: if isOwner(userId);
+      }
+
+      // ── habits ───────────────────────────────────────────────────────────
+      match /habits/{habitId} {
+        allow read:   if isOwner(userId);
+        allow create: if isOwner(userId)
+                      && hasFields(['title', 'icon', 'color', 'frequency', 'targetCount',
+                                    'streak', 'longestStreak', 'completedDates', 'createdAt'])
+                      && isNonEmptyString(request.resource.data.title)
+                      && request.resource.data.frequency in ['daily', 'weekly', 'monthly']
+                      && request.resource.data.targetCount is int
+                      && request.resource.data.targetCount >= 1
+                      && request.resource.data.completedDates is list;
+        allow update: if isOwner(userId)
+                      && isNonEmptyString(request.resource.data.title)
+                      && request.resource.data.frequency in ['daily', 'weekly', 'monthly']
+                      && request.resource.data.completedDates is list;
+        allow delete: if isOwner(userId);
+      }
+
+      // ── routines ─────────────────────────────────────────────────────────
+      match /routines/{routineId} {
+        allow read:   if isOwner(userId);
+        allow create: if isOwner(userId)
+                      && hasFields(['title', 'timeOfDay', 'startTime', 'repeatDays',
+                                    'reminder', 'completedDates', 'streak', 'icon', 'color'])
+                      && isNonEmptyString(request.resource.data.title)
+                      && request.resource.data.timeOfDay in ['morning', 'afternoon', 'evening', 'night']
+                      && request.resource.data.repeatDays is list
+                      && request.resource.data.completedDates is list;
+        allow update: if isOwner(userId)
+                      && isNonEmptyString(request.resource.data.title)
+                      && request.resource.data.timeOfDay in ['morning', 'afternoon', 'evening', 'night'];
+        allow delete: if isOwner(userId);
+      }
+
+      // ── goals ────────────────────────────────────────────────────────────
+      match /goals/{goalId} {
+        allow read:   if isOwner(userId);
+        allow create: if isOwner(userId)
+                      && hasFields(['title', 'category', 'targetDate', 'milestones',
+                                    'progress', 'completed', 'createdAt'])
+                      && isNonEmptyString(request.resource.data.title)
+                      && request.resource.data.category in
+                           ['personal', 'career', 'health', 'finance', 'learning', 'other']
+                      && request.resource.data.milestones is list
+                      && isIntInRange(request.resource.data.progress, 0, 100)
+                      && request.resource.data.completed is bool;
+        allow update: if isOwner(userId)
+                      && isNonEmptyString(request.resource.data.title)
+                      && request.resource.data.category in
+                           ['personal', 'career', 'health', 'finance', 'learning', 'other']
+                      && isIntInRange(request.resource.data.progress, 0, 100);
+        allow delete: if isOwner(userId);
+      }
+
+      // ── projects ─────────────────────────────────────────────────────────
+      match /projects/{projectId} {
+        allow read:   if isOwner(userId);
+        allow create: if isOwner(userId)
+                      && hasFields(['title', 'color', 'icon', 'taskIds', 'createdAt'])
+                      && isNonEmptyString(request.resource.data.title)
+                      && request.resource.data.taskIds is list;
+        allow update: if isOwner(userId)
+                      && isNonEmptyString(request.resource.data.title)
+                      && request.resource.data.taskIds is list;
+        allow delete: if isOwner(userId);
+      }
+
+      // ── notes ────────────────────────────────────────────────────────────
+      match /notes/{noteId} {
+        allow read:   if isOwner(userId);
+        allow create: if isOwner(userId)
+                      && hasFields(['title', 'content', 'tags', 'pinned', 'locked', 'createdAt', 'updatedAt'])
+                      && isNonEmptyString(request.resource.data.title)
+                      && request.resource.data.tags is list
+                      && request.resource.data.pinned is bool
+                      && request.resource.data.locked is bool;
+        allow update: if isOwner(userId)
+                      && isNonEmptyString(request.resource.data.title)
+                      && request.resource.data.tags is list;
+        allow delete: if isOwner(userId);
+      }
+
+      // ── journals ─────────────────────────────────────────────────────────
+      match /journals/{journalId} {
+        allow read:   if isOwner(userId);
+        allow create: if isOwner(userId)
+                      && hasFields(['date', 'mood', 'gratitude', 'wins',
+                                    'challenges', 'lessons', 'content', 'photos', 'createdAt'])
+                      && isNonEmptyString(request.resource.data.date)
+                      && request.resource.data.mood in ['amazing', 'good', 'okay', 'down', 'stressed']
+                      && request.resource.data.gratitude is list
+                      && request.resource.data.wins is list
+                      && request.resource.data.challenges is list
+                      && request.resource.data.photos is list;
+        allow update: if isOwner(userId)
+                      && request.resource.data.mood in ['amazing', 'good', 'okay', 'down', 'stressed'];
+        allow delete: if isOwner(userId);
+      }
+
+      // ── study ────────────────────────────────────────────────────────────
+      match /study/{sessionId} {
+        allow read:   if isOwner(userId);
+        allow create: if isOwner(userId)
+                      && hasFields(['subject', 'topic', 'durationMinutes', 'date', 'completed'])
+                      && isNonEmptyString(request.resource.data.subject)
+                      && isNonEmptyString(request.resource.data.topic)
+                      && request.resource.data.durationMinutes is int
+                      && request.resource.data.durationMinutes > 0
+                      && request.resource.data.completed is bool;
+        allow update: if isOwner(userId)
+                      && request.resource.data.durationMinutes is int
+                      && request.resource.data.durationMinutes > 0;
+        allow delete: if isOwner(userId);
+      }
+
+      // ── coding ───────────────────────────────────────────────────────────
+      match /coding/{sessionId} {
+        allow read:   if isOwner(userId);
+        allow create: if isOwner(userId)
+                      && hasFields(['language', 'project', 'durationMinutes', 'technologies', 'date'])
+                      && isNonEmptyString(request.resource.data.language)
+                      && isNonEmptyString(request.resource.data.project)
+                      && request.resource.data.durationMinutes is int
+                      && request.resource.data.durationMinutes > 0
+                      && request.resource.data.technologies is list;
+        allow update: if isOwner(userId)
+                      && request.resource.data.durationMinutes is int
+                      && request.resource.data.durationMinutes > 0;
+        allow delete: if isOwner(userId);
+      }
+
+      // ── pomodoro ─────────────────────────────────────────────────────────
+      match /pomodoro/{sessionId} {
+        allow read:   if isOwner(userId);
+        allow create: if isOwner(userId)
+                      && hasFields(['sessionType', 'durationMinutes', 'completed', 'startedAt'])
+                      && request.resource.data.sessionType in ['work', 'shortBreak', 'longBreak']
+                      && request.resource.data.durationMinutes is int
+                      && request.resource.data.durationMinutes > 0
+                      && request.resource.data.completed is bool;
+        allow update: if isOwner(userId)
+                      && request.resource.data.sessionType in ['work', 'shortBreak', 'longBreak'];
+        allow delete: if isOwner(userId);
+      }
+
+      // ── analytics ────────────────────────────────────────────────────────
+      // Daily aggregate documents, keyed by date string (YYYY-MM-DD)
+      match /analytics/{dateId} {
+        allow read:   if isOwner(userId);
+        allow create: if isOwner(userId)
+                      && hasFields(['tasksCompleted', 'habitsCompleted', 'routinesCompleted',
+                                    'focusMinutes', 'studyMinutes', 'codingMinutes', 'xpEarned'])
+                      && request.resource.data.tasksCompleted is int
+                      && request.resource.data.habitsCompleted is int
+                      && request.resource.data.routinesCompleted is int
+                      && request.resource.data.focusMinutes is int
+                      && request.resource.data.studyMinutes is int
+                      && request.resource.data.codingMinutes is int
+                      && request.resource.data.xpEarned is int;
+        // Allow field-level increments
+        allow update: if isOwner(userId);
+        allow delete: if false; // Analytics are append-only by policy
+      }
+
+      // ── achievements ─────────────────────────────────────────────────────
+      match /achievements/{achievementId} {
+        allow read:   if isOwner(userId);
+        // Ideally unlocked via Cloud Functions; client writes validated below
+        allow create: if isOwner(userId)
+                      && hasFields(['title', 'description', 'icon', 'xpReward',
+                                    'coinReward', 'unlocked'])
+                      && isNonEmptyString(request.resource.data.title)
+                      && request.resource.data.unlocked is bool
+                      && request.resource.data.xpReward is int
+                      && request.resource.data.coinReward is int;
+        allow update: if isOwner(userId)
+                      && request.resource.data.unlocked is bool;
+        allow delete: if false; // Achievements are permanent
+      }
+
+      // ── notifications ────────────────────────────────────────────────────
+      match /notifications/{notificationId} {
+        allow read:   if isOwner(userId);
+        allow create: if isOwner(userId)
+                      && hasFields(['title', 'body', 'scheduledAt', 'type', 'read', 'createdAt'])
+                      && isNonEmptyString(request.resource.data.title)
+                      && request.resource.data.type in
+                           ['task', 'habit', 'routine', 'pomodoro', 'study', 'general']
+                      && request.resource.data.read is bool;
+        allow update: if isOwner(userId)
+                      // Only allow toggling the read flag
+                      && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read'])
+                      && request.resource.data.read is bool;
+        allow delete: if isOwner(userId);
+      }
+
+      // ── dashboard (single aggregated doc per user) ───────────────────────
+      match /dashboard/{docId} {
+        allow read:   if isOwner(userId);
+        allow write:  if isOwner(userId);
+      }
+
+    } // end match /users/{userId}
+
+  } // end match /databases/{database}/documents
+}
+

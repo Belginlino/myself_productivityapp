@@ -1,0 +1,101 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg-primary: #F8FAFC;
+    --bg-card: #FFFFFF;
+    --border-color: #E2E8F0;
+    --text-main: #0F172A;
+    --text-muted: #64748B;
+  }
+
+  .dark {
+    --bg-primary: #090D16;
+    --bg-card: #111827;
+    --border-color: #1F2937;
+    --text-main: #F9FAFB;
+    --text-muted: #9CA3AF;
+  }
+
+  .amoled {
+    --bg-primary: #000000;
+    --bg-card: #0D0D0D;
+    --border-color: #1F1F1F;
+    --text-main: #FFFFFF;
+    --text-muted: #737373;
+  }
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.4);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 163, 175, 0.7);
+}
+
+/* Custom Utility Classes */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+.dark .glass-panel {
+  background: rgba(17, 24, 39, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(31, 41, 55, 0.8);
+}
+
+.amoled .glass-panel {
+  background: rgba(13, 13, 13, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(31, 31, 31, 0.9);
+}
+
+/* FullCalendar styling overrides */
+.fc {
+  font-family: 'Inter', sans-serif !important;
+}
+
+.fc .fc-toolbar-title {
+  font-size: 1.125rem !important;
+  font-weight: 700 !important;
+}
+
+.fc .fc-button-primary {
+  background-color: #4F46E5 !important;
+  border-color: #4F46E5 !important;
+  text-transform: capitalize !important;
+  border-radius: 0.5rem !important;
+  font-weight: 500 !important;
+}
+
+.fc .fc-button-primary:hover {
+  background-color: #4338CA !important;
+  border-color: #4338CA !important;
+}
+
+.dark .fc, .amoled .fc {
+  --fc-page-bg-color: transparent;
+  --fc-neutral-bg-color: rgba(31, 41, 55, 0.5);
+  --fc-border-color: rgba(55, 65, 81, 0.5);
+  --fc-text-color: #F3F4F6;
+  --fc-button-text-color: #ffffff;
+}
