@@ -1,3 +1,4 @@
+import { Capacitor } from '@capacitor/core';
 import {
   signInWithPopup,
   signInWithEmailAndPassword,
@@ -20,6 +21,27 @@ export interface AuthResult {
 // Google Sign-In
 export const loginWithGoogle = async (): Promise<AuthResult> => {
   try {
+    if (Capacitor.isNativePlatform()) {
+      try {
+        const result = await signInWithPopup(auth, googleProvider);
+        return { success: true, user: result.user };
+      } catch (popupErr: any) {
+        console.warn('Native Google Popup Warning:', popupErr);
+        if (
+          popupErr.code === 'auth/popup-blocked' ||
+          popupErr.code === 'auth/disallowed-useragent' ||
+          popupErr.code === 'auth/operation-not-supported-in-this-environment' ||
+          popupErr.message?.includes('useragent')
+        ) {
+          return {
+            success: false,
+            error: 'Google OAuth restricts popup sign-ins inside Android WebViews. Please use "Sign in with Email" below for instant native mobile login.',
+          };
+        }
+        throw popupErr;
+      }
+    }
+
     const result = await signInWithPopup(auth, googleProvider);
     return { success: true, user: result.user };
   } catch (err: any) {
@@ -29,6 +51,8 @@ export const loginWithGoogle = async (): Promise<AuthResult> => {
       errorMessage = 'Sign-in popup was closed before completing.';
     } else if (err.code === 'auth/unauthorized-domain') {
       errorMessage = 'Domain not authorized in Firebase Console -> Authentication -> Settings -> Authorized domains.';
+    } else if (err.code === 'auth/disallowed-useragent' || err.message?.includes('useragent')) {
+      errorMessage = 'Google OAuth restricts popup sign-ins inside Android WebViews. Please use "Sign in with Email" below for native mobile access.';
     }
     return { success: false, error: errorMessage };
   }
