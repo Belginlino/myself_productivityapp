@@ -10,10 +10,12 @@ import {
   Sparkles,
   LogOut,
   Cloud,
+  Mail,
 } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 import { loginWithGoogle, logoutFirebase } from '../../firebase/authService';
 import { pullAllDataFromCloud } from '../../firebase/syncService';
+import { FirebaseAuthModal } from '../common/FirebaseAuthModal';
 
 export const navItems = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -28,6 +30,7 @@ export const navItems = [
 export const Sidebar: React.FC = () => {
   const { activeTab, setActiveTab, profile, settings } = useAppStore();
   const [loading, setLoading] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   const isConnected = settings.firebaseConnected && profile.uid && profile.uid !== 'local-user-1';
 
@@ -85,13 +88,13 @@ export const Sidebar: React.FC = () => {
         })}
       </nav>
 
-      {/* Sidebar Footer: Google Login or User Account */}
+      {/* Sidebar Footer: Google / Email Login or User Account */}
       <div className="p-3 m-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 text-xs">
         {isConnected ? (
           <div className="space-y-2">
             <div className="flex items-center gap-2.5">
               {profile.photoURL ? (
-                <img src={profile.photoURL} alt="Avatar" className="w-8 h-8 rounded-full ring-2 ring-indigo-500 shrink-0" />
+                <img src={profile.photoURL} alt="Avatar" className="w-8 h-8 rounded-full ring-2 ring-indigo-500 shrink-0 object-cover" />
               ) : (
                 <div className="w-8 h-8 rounded-full bg-indigo-600 text-white font-bold text-xs flex items-center justify-center shrink-0">
                   {(profile.name || profile.email || 'U')[0].toUpperCase()}
@@ -145,11 +148,20 @@ export const Sidebar: React.FC = () => {
                   d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.58l3.99 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
                 />
               </svg>
-              <span>{loading ? 'Connecting...' : 'Sign in with Google'}</span>
+              <span>Sign in with Google</span>
+            </button>
+            <button
+              onClick={() => setIsAuthModalOpen(true)}
+              className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold text-xs transition-all active:scale-98"
+            >
+              <Mail className="w-3.5 h-3.5" />
+              <span>Sign in with Email</span>
             </button>
           </div>
         )}
       </div>
+
+      <FirebaseAuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} initialTab="login" />
     </aside>
   );
 };

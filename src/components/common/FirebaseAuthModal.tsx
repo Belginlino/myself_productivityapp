@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Cloud,
   LogOut,
@@ -13,28 +13,39 @@ import {
   Shield,
   HelpCircle,
   X,
+  Eye,
+  EyeOff,
+  KeyRound,
 } from 'lucide-react';
 import { Button } from './Button';
 import { useAppStore } from '../../store/useAppStore';
-import { loginWithGoogle, loginWithEmail, registerWithEmail, logoutFirebase } from '../../firebase/authService';
+import { loginWithGoogle, loginWithEmail, registerWithEmail, resetPassword, logoutFirebase } from '../../firebase/authService';
 import { pushAllDataToCloud, pullAllDataFromCloud } from '../../firebase/syncService';
 
 interface FirebaseAuthModalProps {
   isOpen: boolean;
   onClose: () => void;
+  initialTab?: 'login' | 'register';
 }
 
-export const FirebaseAuthModal: React.FC<FirebaseAuthModalProps> = ({ isOpen, onClose }) => {
+export const FirebaseAuthModal: React.FC<FirebaseAuthModalProps> = ({ isOpen, onClose, initialTab = 'login' }) => {
   const { profile, settings } = useAppStore();
 
-  const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
+  const [activeTab, setActiveTab] = useState<'login' | 'register'>(initialTab);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   
   const [loading, setLoading] = useState(false);
   const [statusMsg, setStatusMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [showHelp, setShowHelp] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setActiveTab(initialTab);
+    }
+  }, [isOpen, initialTab]);
 
   if (!isOpen) return null;
 
@@ -79,6 +90,22 @@ export const FirebaseAuthModal: React.FC<FirebaseAuthModalProps> = ({ isOpen, on
     if (res.success && res.user) {
       setStatusMsg({ type: 'success', text: `Account created for ${res.user.email}!` });
       await pushAllDataToCloud(res.user.uid);
+    } else if (res.error) {
+      setStatusMsg({ type: 'error', text: res.error });
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!email) {
+      setStatusMsg({ type: 'error', text: 'Please enter your email address first.' });
+      return;
+    }
+    setLoading(true);
+    setStatusMsg(null);
+    const res = await resetPassword(email);
+    setLoading(false);
+    if (res.success) {
+      setStatusMsg({ type: 'success', text: `Password reset email sent to ${email}!` });
     } else if (res.error) {
       setStatusMsg({ type: 'error', text: res.error });
     }
@@ -290,7 +317,7 @@ export const FirebaseAuthModal: React.FC<FirebaseAuthModalProps> = ({ isOpen, on
             {activeTab === 'login' ? (
               <form onSubmit={handleEmailLogin} className="space-y-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Email</label>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Email Address</label>
                   <div className="relative">
                     <Mail className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
                     <input
@@ -305,17 +332,33 @@ export const FirebaseAuthModal: React.FC<FirebaseAuthModalProps> = ({ isOpen, on
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Password</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">Password</label>
+                    <button
+                      type="button"
+                      onClick={handleForgotPassword}
+                      className="text-[11px] font-medium text-indigo-600 dark:text-indigo-400 hover:underline"
+                    >
+                      Forgot password?
+                    </button>
+                  </div>
                   <div className="relative">
                     <Lock className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
                     <input
-                      type="password"
+                      type={showPassword ? 'text' : 'password'}
                       required
                       placeholder="••••••••"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/80 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full pl-9 pr-10 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/80 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
                   </div>
                 </div>
 
@@ -340,7 +383,7 @@ export const FirebaseAuthModal: React.FC<FirebaseAuthModalProps> = ({ isOpen, on
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Email</label>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Email Address</label>
                   <div className="relative">
                     <Mail className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
                     <input
@@ -359,14 +402,21 @@ export const FirebaseAuthModal: React.FC<FirebaseAuthModalProps> = ({ isOpen, on
                   <div className="relative">
                     <Lock className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
                     <input
-                      type="password"
+                      type={showPassword ? 'text' : 'password'}
                       required
                       minLength={6}
                       placeholder="Min 6 characters"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/80 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full pl-9 pr-10 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/80 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
                   </div>
                 </div>
 

@@ -2,6 +2,7 @@ import {
   signInWithPopup,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
   signOut,
   updateProfile as updateFirebaseProfile,
   onAuthStateChanged,
@@ -65,6 +66,23 @@ export const registerWithEmail = async (email: string, pass: string, name: strin
       errorMessage = 'This email address is already in use.';
     } else if (err.code === 'auth/weak-password') {
       errorMessage = 'Password should be at least 6 characters long.';
+    }
+    return { success: false, error: errorMessage };
+  }
+};
+
+// Password Reset
+export const resetPassword = async (email: string): Promise<AuthResult> => {
+  try {
+    await sendPasswordResetEmail(auth, email);
+    return { success: true };
+  } catch (err: any) {
+    console.error('Password Reset Error:', err);
+    let errorMessage = err.message || 'Failed to send password reset email.';
+    if (err.code === 'auth/user-not-found') {
+      errorMessage = 'No user found with this email address.';
+    } else if (err.code === 'auth/invalid-email') {
+      errorMessage = 'Invalid email address.';
     }
     return { success: false, error: errorMessage };
   }
