@@ -64,7 +64,7 @@ export const CalendarView: React.FC = () => {
         </div>
       </div>
 
-      <Card className="p-6">
+      <Card className="p-4 sm:p-6 overflow-x-auto">
         <FullCalendar
           plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
           initialView="dayGridMonth"
@@ -73,6 +73,13 @@ export const CalendarView: React.FC = () => {
             center: 'title',
             right: 'dayGridMonth,timeGridWeek,timeGridDay',
           }}
+          buttonText={{
+            today: 'Today',
+            month: 'Month',
+            week: 'Week',
+            day: 'Day',
+          }}
+          dayHeaderFormat={{ weekday: 'short' }}
           events={allEvents}
           editable={true}
           selectable={true}

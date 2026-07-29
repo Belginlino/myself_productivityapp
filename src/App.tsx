@@ -13,6 +13,8 @@ import { PomodoroView } from './features/pomodoro/PomodoroView';
 import { SettingsView } from './features/settings/SettingsView';
 
 import { useAppStore } from './store/useAppStore';
+import { initAuthListener } from './firebase/authService';
+import { pullAllDataFromCloud, initAutoStoreSync } from './firebase/syncService';
 
 export const App: React.FC = () => {
   const { activeTab, settings } = useAppStore();
@@ -26,6 +28,24 @@ export const App: React.FC = () => {
     } else {
       root.classList.add(settings.theme || 'dark');
     }
+
+    let unsubscribeAutoSync: (() => void) | null = null;
+
+    // Initialize Firebase Auth state listener
+    const unsubscribeAuth = initAuthListener((user) => {
+      if (user) {
+        pullAllDataFromCloud(user.uid);
+        if (unsubscribeAutoSync) unsubscribeAutoSync();
+        unsubscribeAutoSync = initAutoStoreSync(user.uid);
+      } else {
+        if (unsubscribeAutoSync) unsubscribeAutoSync();
+      }
+    });
+
+    return () => {
+      unsubscribeAuth();
+      if (unsubscribeAutoSync) unsubscribeAutoSync();
+    };
   }, [settings.theme]);
 
   const renderActiveView = () => {

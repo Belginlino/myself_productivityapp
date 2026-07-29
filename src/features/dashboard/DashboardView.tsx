@@ -68,9 +68,24 @@ export const DashboardView: React.FC = () => {
               <span>•</span>
               <span className="font-mono font-semibold">{currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
             </div>
-            <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-              Good day, {profile.name}! 👋
-            </h2>
+            <div className="flex items-center gap-3.5 my-1">
+              {profile.photoURL ? (
+                <img
+                  src={profile.photoURL}
+                  alt="Profile Avatar"
+                  className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl ring-4 ring-white/30 object-cover shadow-lg shrink-0"
+                />
+              ) : (
+                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-white/20 backdrop-blur-md text-white font-extrabold text-xl sm:text-2xl flex items-center justify-center border border-white/30 shadow-lg shrink-0">
+                  {(profile.name || 'U')[0]?.toUpperCase()}
+                </div>
+              )}
+              <div>
+                <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+                  Good day, {profile.name || 'Friend'}! 👋
+                </h2>
+              </div>
+            </div>
             <p className="text-indigo-100/90 text-xs sm:text-sm mt-1 max-w-xl flex items-center gap-1.5 italic">
               <Quote className="w-4 h-4 shrink-0 opacity-80" />
               "{quote.text}" — <span className="font-semibold">{quote.author}</span>

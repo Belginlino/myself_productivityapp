@@ -69,22 +69,65 @@
   border: 1px solid rgba(31, 31, 31, 0.9);
 }
 
-/* FullCalendar styling overrides */
+/* FullCalendar styling & responsive fixes */
 .fc {
-  font-family: 'Inter', sans-serif !important;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+  --fc-border-color: var(--border-color) !important;
+  --fc-page-bg-color: transparent !important;
+  --fc-neutral-bg-color: rgba(31, 41, 55, 0.3) !important;
+  --fc-list-event-hover-bg-color: rgba(79, 70, 229, 0.1) !important;
+}
+
+/* Fix header toolbar layout on all screen sizes */
+.fc .fc-toolbar {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.75rem !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  margin-bottom: 1.25rem !important;
+}
+
+@media (min-width: 640px) {
+  .fc .fc-toolbar {
+    flex-direction: row !important;
+  }
+}
+
+.fc .fc-toolbar-chunk {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.375rem !important;
+  flex-wrap: wrap !important;
 }
 
 .fc .fc-toolbar-title {
-  font-size: 1.125rem !important;
+  font-size: 1.25rem !important;
   font-weight: 700 !important;
+  color: var(--text-main) !important;
+  text-align: center !important;
+}
+
+/* Fix buttons overlapping and size */
+.fc .fc-button {
+  padding: 0.4rem 0.75rem !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  line-height: 1.25rem !important;
+  border-radius: 0.375rem !important;
+  box-shadow: none !important;
+  outline: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.15s ease-in-out !important;
 }
 
 .fc .fc-button-primary {
   background-color: #4F46E5 !important;
   border-color: #4F46E5 !important;
-  text-transform: capitalize !important;
-  border-radius: 0.5rem !important;
-  font-weight: 500 !important;
+  color: #ffffff !important;
 }
 
 .fc .fc-button-primary:hover {
@@ -92,10 +135,91 @@
   border-color: #4338CA !important;
 }
 
+.fc .fc-button-primary:disabled {
+  opacity: 0.6 !important;
+  background-color: #4F46E5 !important;
+  border-color: #4F46E5 !important;
+}
+
+.fc .fc-button-primary:not(:disabled).fc-button-active,
+.fc .fc-button-primary:not(:disabled):active {
+  background-color: #3730A3 !important;
+  border-color: #3730A3 !important;
+}
+
+/* Remove default negative margins in fc-button-group causing overlap */
+.fc .fc-button-group {
+  display: inline-flex !important;
+  gap: 0.25rem !important;
+}
+
+.fc .fc-button-group > .fc-button {
+  margin: 0 !important;
+  border-radius: 0.375rem !important;
+  flex: none !important;
+}
+
+.fc .fc-today-button {
+  margin-left: 0.25rem !important;
+}
+
+/* Fix header column cells (Sun, Mon, Tue...) overlapping */
+.fc .fc-col-header {
+  width: 100% !important;
+}
+
+.fc .fc-col-header-cell {
+  padding: 0.5rem 0.125rem !important;
+  background-color: transparent !important;
+  border-color: var(--border-color) !important;
+}
+
+.fc .fc-col-header-cell-cushion {
+  display: block !important;
+  padding: 0 !important;
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  color: var(--text-muted) !important;
+  text-decoration: none !important;
+  text-align: center !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* Dark mode cell background & borders */
 .dark .fc, .amoled .fc {
   --fc-page-bg-color: transparent;
   --fc-neutral-bg-color: rgba(31, 41, 55, 0.5);
   --fc-border-color: rgba(55, 65, 81, 0.5);
   --fc-text-color: #F3F4F6;
   --fc-button-text-color: #ffffff;
+}
+
+.fc .fc-daygrid-day {
+  transition: background-color 0.15s ease;
+}
+
+.fc .fc-daygrid-day-number {
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  color: var(--text-main) !important;
+  padding: 0.375rem 0.5rem !important;
+  text-decoration: none !important;
+}
+
+.fc .fc-day-today {
+  background-color: rgba(79, 70, 229, 0.08) !important;
+}
+
+.dark .fc .fc-day-today, .amoled .fc .fc-day-today {
+  background-color: rgba(79, 70, 229, 0.18) !important;
+}
+
+.fc .fc-daygrid-event {
+  border-radius: 0.25rem !important;
+  padding: 2px 4px !important;
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
 }
