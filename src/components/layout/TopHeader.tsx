@@ -35,9 +35,7 @@ export const TopHeader: React.FC = () => {
       {/* Left: Mobile Title */}
       <div className="flex items-center gap-2 sm:gap-3">
         <div className="lg:hidden flex items-center gap-1.5 font-black text-sm text-slate-900 dark:text-white shrink-0">
-          <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-indigo-600 to-emerald-500 flex items-center justify-center text-white">
-            <Sparkles className="w-4 h-4" />
-          </div>
+          <img src="/favicon.svg" alt="Myself Logo" className="w-7 h-7 rounded-lg shadow-sm" />
           <span className="tracking-tight">Myself</span>
         </div>
       </div>

@@ -1,11 +1,32 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
-  <rect width="100" height="100" rx="28" fill="url(#grad)" />
-  <rect x="24" y="24" width="52" height="52" rx="14" stroke="white" stroke-width="6" opacity="0.9"/>
-  <path d="M36 50L46 60L64 40" stroke="white" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
   <defs>
-    <linearGradient id="grad" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#4F46E5" />
-      <stop offset="1" stop-color="#10B981" />
+    <linearGradient id="bg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4F46E5" />
+      <stop offset="50%" stop-color="#06B6D4" />
+      <stop offset="100%" stop-color="#10B981" />
     </linearGradient>
+    <linearGradient id="glow-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.95" />
+      <stop offset="100%" stop-color="#E0E7FF" stop-opacity="0.8" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#000000" flood-opacity="0.25"/>
+    </filter>
   </defs>
+
+  <!-- Background Card -->
+  <rect width="512" height="512" rx="140" fill="url(#bg-grad)" />
+
+  <!-- Inner Subtle Glass Shield Outline -->
+  <rect x="56" y="56" width="400" height="400" rx="100" stroke="white" stroke-width="8" stroke-opacity="0.25" fill="none" />
+
+  <!-- "M" + Checkmark Symbol -->
+  <g filter="url(#shadow)">
+    <!-- Left Pillar of M -->
+    <path d="M140 370 V 160 C 140 145 155 135 170 142 L 230 172 C 242 178 250 190 250 204 V 370" stroke="url(#glow-grad)" stroke-width="36" stroke-linecap="round" stroke-linejoin="round" />
+    <!-- Right Checkmark Curve of M -->
+    <path d="M250 240 L 310 172 C 325 155 352 165 352 188 V 370" stroke="url(#glow-grad)" stroke-width="36" stroke-linecap="round" stroke-linejoin="round" />
+    <!-- Glowing Dynamic Checkmark Overlay -->
+    <path d="M190 280 L 260 350 L 390 190" stroke="#FFFFFF" stroke-width="42" stroke-linecap="round" stroke-linejoin="round" />
+  </g>
 </svg>
