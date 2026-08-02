@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Plus, Moon, Sun, Bell, Flame, Check, Cloud, Mail } from 'lucide-react';
+import { Plus, Moon, Sun, Bell, Flame, Check, Cloud, Mail, Mic } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 import { useRoutineStore } from '../../store/useRoutineStore';
 import { FirebaseAuthModal } from '../common/FirebaseAuthModal';
+import { VoicePermissionModal } from '../common/VoicePermissionModal';
 
 export const TopHeader: React.FC = () => {
   const {
@@ -19,6 +20,7 @@ export const TopHeader: React.FC = () => {
 
   const [showNotifications, setShowNotifications] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isVoicePermissionOpen, setIsVoicePermissionOpen] = useState(false);
 
   return (
     <header className="sticky top-0 z-20 bg-white/80 dark:bg-[rgba(5,5,5,0.7)] backdrop-blur-2xl border-b border-slate-200/80 dark:border-white/10 px-4 lg:px-8 py-3.5 flex items-center justify-between gap-4 transition-colors">
@@ -37,6 +39,15 @@ export const TopHeader: React.FC = () => {
           <Flame className="w-4 h-4 text-slate-900 dark:text-white fill-slate-900 dark:fill-white" />
           <span>{streakData.currentStreak} Day Streak</span>
         </div>
+
+        {/* Voice Permission Toggle Button */}
+        <button
+          onClick={() => setIsVoicePermissionOpen(true)}
+          className="p-2.5 rounded-full text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
+          title="Enable Voice / Microphone Permission"
+        >
+          <Mic className="w-5 h-5 text-slate-900 dark:text-white" />
+        </button>
 
         {/* Firebase Cloud Sync Status / Email Sign In */}
         {settings.firebaseConnected && profile.uid && profile.uid !== 'local-user-1' ? (
@@ -143,6 +154,10 @@ export const TopHeader: React.FC = () => {
       </div>
 
       <FirebaseAuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
+      <VoicePermissionModal
+        isOpen={isVoicePermissionOpen}
+        onClose={() => setIsVoicePermissionOpen(false)}
+      />
     </header>
   );
 };

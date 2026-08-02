@@ -14,6 +14,7 @@ import {
   ChevronUp,
   Circle,
   Star,
+  ShieldAlert,
 } from 'lucide-react';
 import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
@@ -23,6 +24,7 @@ import { useTaskStore } from '../../store/useTaskStore';
 import { TaskItem } from '../../types';
 import { audioRecorderService } from '../../services/audioRecorderService';
 import { requestNotificationPermissions } from '../../services/notificationService';
+import { VoicePermissionModal } from '../../components/common/VoicePermissionModal';
 
 export const TaskView: React.FC = () => {
   const { tasks, addTask, updateTask, deleteTask, toggleTaskComplete } = useTaskStore();
@@ -44,6 +46,7 @@ export const TaskView: React.FC = () => {
   const [recordedVoiceUrl, setRecordedVoiceUrl] = useState<string | undefined>(undefined);
   const [recordedVoiceDuration, setRecordedVoiceDuration] = useState<number | undefined>(undefined);
   const [audioError, setAudioError] = useState<string | null>(null);
+  const [isPermissionModalOpen, setIsPermissionModalOpen] = useState(false);
 
   // Collapsible Completed Tasks Section
   const [showCompleted, setShowCompleted] = useState(true);
@@ -87,7 +90,8 @@ export const TaskView: React.FC = () => {
       });
     } catch (err: any) {
       setIsRecording(false);
-      setAudioError(err.message || 'Failed to start microphone.');
+      setAudioError(err.message || 'Failed to start microphone. Please enable voice permission.');
+      setIsPermissionModalOpen(true);
     }
   };
 
@@ -389,7 +393,18 @@ export const TaskView: React.FC = () => {
               </button>
             )}
 
-            {audioError && <p className="text-[11px] text-red-500 font-medium">{audioError}</p>}
+            {audioError && (
+              <div className="space-y-2 pt-1">
+                <p className="text-[11px] text-red-500 font-medium">{audioError}</p>
+                <button
+                  type="button"
+                  onClick={() => setIsPermissionModalOpen(true)}
+                  className="px-3 py-1.5 rounded-full bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500/20 text-xs font-bold flex items-center gap-1.5 transition-colors"
+                >
+                  <ShieldAlert className="w-3.5 h-3.5" /> Enable Voice Permission
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Task Title Input */}
@@ -475,6 +490,15 @@ export const TaskView: React.FC = () => {
           </div>
         </form>
       </Modal>
+
+      <VoicePermissionModal
+        isOpen={isPermissionModalOpen}
+        onClose={() => setIsPermissionModalOpen(false)}
+        onGranted={() => {
+          setAudioError(null);
+          handleStartRecording();
+        }}
+      />
     </div>
   );
 };

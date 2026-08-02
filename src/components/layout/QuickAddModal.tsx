@@ -4,9 +4,10 @@ import { Button } from '../common/Button';
 import { useAppStore } from '../../store/useAppStore';
 import { useTaskStore } from '../../store/useTaskStore';
 import { useRoutineStore } from '../../store/useRoutineStore';
-import { CheckSquare, Clock, Mic, Square, Trash2 } from 'lucide-react';
+import { CheckSquare, Clock, Mic, Square, Trash2, ShieldAlert } from 'lucide-react';
 import { audioRecorderService } from '../../services/audioRecorderService';
 import { VoiceNotePlayer } from '../common/VoiceNotePlayer';
+import { VoicePermissionModal } from '../common/VoicePermissionModal';
 
 export const QuickAddModal: React.FC = () => {
   const { isQuickAddOpen, toggleQuickAdd } = useAppStore();
@@ -25,6 +26,7 @@ export const QuickAddModal: React.FC = () => {
   const [recordedVoiceUrl, setRecordedVoiceUrl] = useState<string | undefined>(undefined);
   const [recordedVoiceDuration, setRecordedVoiceDuration] = useState<number | undefined>(undefined);
   const [audioError, setAudioError] = useState<string | null>(null);
+  const [isPermissionModalOpen, setIsPermissionModalOpen] = useState(false);
 
   const handleStartRecording = async () => {
     setAudioError(null);
@@ -36,7 +38,8 @@ export const QuickAddModal: React.FC = () => {
       });
     } catch (err: any) {
       setIsRecording(false);
-      setAudioError(err.message || 'Microphone access failed.');
+      setAudioError(err.message || 'Microphone access failed. Please enable voice permission.');
+      setIsPermissionModalOpen(true);
     }
   };
 
@@ -189,7 +192,18 @@ export const QuickAddModal: React.FC = () => {
               </button>
             )}
 
-            {audioError && <p className="text-[11px] text-red-500 font-medium">{audioError}</p>}
+            {audioError && (
+              <div className="space-y-2 pt-1">
+                <p className="text-[11px] text-red-500 font-medium">{audioError}</p>
+                <button
+                  type="button"
+                  onClick={() => setIsPermissionModalOpen(true)}
+                  className="px-3 py-1.5 rounded-full bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500/20 text-xs font-bold flex items-center gap-1.5 transition-colors"
+                >
+                  <ShieldAlert className="w-3.5 h-3.5" /> Enable Voice Permission
+                </button>
+              </div>
+            )}
           </div>
         )}
 
@@ -269,6 +283,15 @@ export const QuickAddModal: React.FC = () => {
           </Button>
         </div>
       </form>
+
+      <VoicePermissionModal
+        isOpen={isPermissionModalOpen}
+        onClose={() => setIsPermissionModalOpen(false)}
+        onGranted={() => {
+          setAudioError(null);
+          handleStartRecording();
+        }}
+      />
     </Modal>
   );
 };

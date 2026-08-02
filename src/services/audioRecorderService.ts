@@ -20,6 +20,33 @@ export class AudioRecorderService {
     );
   }
 
+  public async checkPermissionStatus(): Promise<'granted' | 'denied' | 'prompt' | 'unknown'> {
+    if (typeof window === 'undefined' || !navigator.permissions) {
+      return 'unknown';
+    }
+    try {
+      const result = await navigator.permissions.query({ name: 'microphone' as PermissionName });
+      return result.state as 'granted' | 'denied' | 'prompt';
+    } catch {
+      return 'unknown';
+    }
+  }
+
+  public async requestPermission(): Promise<boolean> {
+    if (!navigator.mediaDevices || typeof navigator.mediaDevices.getUserMedia !== 'function') {
+      throw new Error('Microphone access is not supported on this mobile device.');
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      // Stop tracks immediately so it was just for prompting / granting permission
+      stream.getTracks().forEach((track) => track.stop());
+      return true;
+    } catch (err: any) {
+      console.warn('Voice permission request rejected:', err);
+      return false;
+    }
+  }
+
   public async startRecording(onTick?: (seconds: number) => void): Promise<void> {
     if (!navigator.mediaDevices || typeof navigator.mediaDevices.getUserMedia !== 'function') {
       throw new Error('Microphone access is not supported in this browser.');
