@@ -5,6 +5,12 @@ import {
   signOut,
   updateProfile as updateFirebaseProfile,
   onAuthStateChanged,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signInAnonymously,
+  setPersistence,
+  browserLocalPersistence,
+  browserSessionPersistence,
   User,
 } from 'firebase/auth';
 import { auth } from './config';
@@ -15,6 +21,51 @@ export interface AuthResult {
   user?: User;
   error?: string;
 }
+
+// Google Sign In
+export const loginWithGoogle = async (): Promise<AuthResult> => {
+  try {
+    const provider = new GoogleAuthProvider();
+    const result = await signInWithPopup(auth, provider);
+    return { success: true, user: result.user };
+  } catch (err: any) {
+    console.error('Google Sign-In Error:', err);
+    let errorMessage = err.message || 'Google sign-in failed.';
+    if (err.code === 'auth/popup-closed-by-user') {
+      errorMessage = 'Sign-in window was closed.';
+    } else if (err.code === 'auth/operation-not-allowed') {
+      errorMessage = 'Google sign-in is not enabled in Firebase Console.';
+    }
+    return { success: false, error: errorMessage };
+  }
+};
+
+// Guest / Anonymous Sign In
+export const loginAsGuest = async (): Promise<AuthResult> => {
+  try {
+    const result = await signInAnonymously(auth);
+    return { success: true, user: result.user };
+  } catch (err: any) {
+    console.error('Guest Sign-In Error:', err);
+    let errorMessage = err.message || 'Guest sign-in failed.';
+    if (err.code === 'auth/operation-not-allowed') {
+      errorMessage = 'Anonymous sign-in is not enabled in Firebase Console.';
+    }
+    return { success: false, error: errorMessage };
+  }
+};
+
+// Toggle Session Persistence
+export const updateSessionPersistence = async (remember: boolean): Promise<boolean> => {
+  try {
+    const persistence = remember ? browserLocalPersistence : browserSessionPersistence;
+    await setPersistence(auth, persistence);
+    return true;
+  } catch (err) {
+    console.error('Persistence error:', err);
+    return false;
+  }
+};
 
 // Email/Password Login
 export const loginWithEmail = async (email: string, pass: string): Promise<AuthResult> => {
@@ -95,10 +146,10 @@ export const initAuthListener = (onUserChange?: (user: User | null) => void) => 
     const { profile, updateProfile, updateSettings } = useAppStore.getState();
     if (user) {
       const activeName =
-        profile.name || user.displayName || user.email?.split('@')[0] || 'User';
+        profile.name || user.displayName || (user.isAnonymous ? 'Guest User' : user.email?.split('@')[0]) || 'User';
       updateProfile({
         uid: user.uid,
-        email: user.email || profile.email || '',
+        email: user.email || profile.email || (user.isAnonymous ? 'guest@myself.local' : ''),
         name: activeName,
         photoURL: profile.photoURL || user.photoURL || undefined,
       });

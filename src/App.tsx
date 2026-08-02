@@ -1,8 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { Sidebar } from './components/layout/Sidebar';
 import { BottomNav } from './components/layout/BottomNav';
 import { TopHeader } from './components/layout/TopHeader';
 import { QuickAddModal } from './components/layout/QuickAddModal';
+import { SettingsModal } from './components/common/SettingsModal';
+import { PinLockScreen } from './components/common/PinLockScreen';
 
 import { HomeView } from './features/home/HomeView';
 import { TaskView } from './features/tasks/TaskView';
@@ -33,7 +35,9 @@ export const App: React.FC = () => {
     // Initialize Firebase Auth state listener
     const unsubscribeAuth = initAuthListener((user) => {
       if (user) {
-        pullAllDataFromCloud(user.uid);
+        if (settings.autoSyncOnLogin) {
+          pullAllDataFromCloud(user.uid);
+        }
         if (unsubscribeAutoSync) unsubscribeAutoSync();
         unsubscribeAutoSync = initAutoStoreSync(user.uid);
       } else {
@@ -45,7 +49,7 @@ export const App: React.FC = () => {
       unsubscribeAuth();
       if (unsubscribeAutoSync) unsubscribeAutoSync();
     };
-  }, [settings.theme]);
+  }, [settings.theme, settings.autoSyncOnLogin]);
 
   const renderActiveView = () => {
     switch (activeTab) {
@@ -97,6 +101,12 @@ export const App: React.FC = () => {
 
       {/* Global Quick Add Modal */}
       <QuickAddModal />
+
+      {/* Global Application Settings Modal */}
+      <SettingsModal />
+
+      {/* Passcode PIN Lock Screen */}
+      <PinLockScreen />
     </div>
   );
 };

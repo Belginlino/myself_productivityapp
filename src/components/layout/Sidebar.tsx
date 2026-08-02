@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Home, CheckSquare, Clock, LogOut, Cloud, Mail, UserPlus } from 'lucide-react';
+import { Home, CheckSquare, Clock, LogOut, Cloud, Mail, UserPlus, Settings } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 import { logoutFirebase } from '../../firebase/authService';
 import { FirebaseAuthModal } from '../common/FirebaseAuthModal';
@@ -11,7 +11,7 @@ export const navItems: { id: 'home' | 'tasks' | 'routines'; label: string; icon:
 ];
 
 export const Sidebar: React.FC = () => {
-  const { activeTab, setActiveTab, profile, settings } = useAppStore();
+  const { activeTab, setActiveTab, profile, settings, toggleSettings } = useAppStore();
   const [loading, setLoading] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authTab, setAuthTab] = useState<'login' | 'register'>('login');
@@ -68,6 +68,14 @@ export const Sidebar: React.FC = () => {
             </button>
           );
         })}
+
+        <button
+          onClick={() => toggleSettings(true)}
+          className="w-full flex items-center gap-3.5 px-4 py-3.5 rounded-full font-bold text-xs text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 transition-all duration-300"
+        >
+          <Settings className="w-4 h-4 shrink-0 text-slate-500 dark:text-neutral-400" />
+          <span className="truncate">Settings & Security</span>
+        </button>
       </nav>
 
       {/* Sidebar Footer: Cloud Auth Account */}

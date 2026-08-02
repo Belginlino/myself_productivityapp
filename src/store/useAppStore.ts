@@ -7,6 +7,7 @@ interface AppState {
   settings: AppSettings;
   activeTab: 'home' | 'tasks' | 'routines';
   isQuickAddOpen: boolean;
+  isSettingsOpen: boolean;
   notifications: NotificationItem[];
   unreadNotificationCount: number;
 
@@ -14,10 +15,17 @@ interface AppState {
   setActiveTab: (tab: 'home' | 'tasks' | 'routines') => void;
   setTheme: (theme: ThemeMode) => void;
   toggleQuickAdd: (open?: boolean) => void;
+  toggleSettings: (open?: boolean) => void;
   updateProfile: (updates: Partial<UserProfile>) => void;
   updateSettings: (updates: Partial<AppSettings>) => void;
   addNotification: (notification: Omit<NotificationItem, 'id' | 'createdAt' | 'read'>) => void;
   markNotificationsAsRead: () => void;
+
+  // Security / PIN actions
+  setPinCode: (pin: string) => void;
+  togglePinLock: (enabled: boolean) => void;
+  unlockApp: (inputPin: string) => boolean;
+  lockApp: () => void;
 }
 
 const initialProfile: UserProfile = {
@@ -33,15 +41,22 @@ const initialSettings: AppSettings = {
   reminderSound: true,
   vibration: true,
   firebaseConnected: false,
+  preferredLoginMethod: 'email',
+  autoSyncOnLogin: true,
+  rememberMe: true,
+  pinLockEnabled: false,
+  pinCode: '',
+  isAppLocked: false,
 };
 
 export const useAppStore = create<AppState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       profile: initialProfile,
       settings: initialSettings,
       activeTab: 'home',
       isQuickAddOpen: false,
+      isSettingsOpen: false,
       notifications: [],
       unreadNotificationCount: 0,
 
@@ -59,6 +74,11 @@ export const useAppStore = create<AppState>()(
       toggleQuickAdd: (open) =>
         set((state) => ({
           isQuickAddOpen: open !== undefined ? open : !state.isQuickAddOpen,
+        })),
+
+      toggleSettings: (open) =>
+        set((state) => ({
+          isSettingsOpen: open !== undefined ? open : !state.isSettingsOpen,
         })),
 
       updateProfile: (updates) =>
@@ -88,6 +108,36 @@ export const useAppStore = create<AppState>()(
         set((state) => ({
           notifications: state.notifications.map((n) => ({ ...n, read: true })),
           unreadNotificationCount: 0,
+        })),
+
+      setPinCode: (pin) =>
+        set((state) => ({
+          settings: { ...state.settings, pinCode: pin },
+        })),
+
+      togglePinLock: (enabled) =>
+        set((state) => ({
+          settings: {
+            ...state.settings,
+            pinLockEnabled: enabled,
+            isAppLocked: enabled ? false : false,
+          },
+        })),
+
+      unlockApp: (inputPin) => {
+        const currentPin = get().settings.pinCode;
+        if (!currentPin || inputPin === currentPin) {
+          set((state) => ({
+            settings: { ...state.settings, isAppLocked: false },
+          }));
+          return true;
+        }
+        return false;
+      },
+
+      lockApp: () =>
+        set((state) => ({
+          settings: { ...state.settings, isAppLocked: true },
         })),
     }),
     {

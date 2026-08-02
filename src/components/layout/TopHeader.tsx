@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Moon, Sun, Bell, Flame, Check, Cloud, Mail, Mic } from 'lucide-react';
+import { Plus, Moon, Sun, Bell, Flame, Check, Cloud, Mail, Mic, Settings } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 import { useRoutineStore } from '../../store/useRoutineStore';
 import { FirebaseAuthModal } from '../common/FirebaseAuthModal';
@@ -11,6 +11,7 @@ export const TopHeader: React.FC = () => {
     settings,
     setTheme,
     toggleQuickAdd,
+    toggleSettings,
     notifications,
     unreadNotificationCount,
     markNotificationsAsRead,
@@ -39,6 +40,15 @@ export const TopHeader: React.FC = () => {
           <Flame className="w-4 h-4 text-slate-900 dark:text-white fill-slate-900 dark:fill-white" />
           <span>{streakData.currentStreak} Day Streak</span>
         </div>
+
+        {/* Settings Toggle Button */}
+        <button
+          onClick={() => toggleSettings(true)}
+          className="p-2.5 rounded-full text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
+          title="Open Settings & Login Options"
+        >
+          <Settings className="w-5 h-5 text-slate-900 dark:text-white" />
+        </button>
 
         {/* Voice Permission Toggle Button */}
         <button

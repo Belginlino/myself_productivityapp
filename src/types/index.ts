@@ -8,12 +8,20 @@ export interface UserProfile {
   createdAt: string;
 }
 
+export type PreferredLoginMethod = 'email' | 'google' | 'guest';
+
 export interface AppSettings {
   theme: ThemeMode;
   notificationsEnabled: boolean;
   reminderSound: boolean;
   vibration: boolean;
   firebaseConnected: boolean;
+  preferredLoginMethod: PreferredLoginMethod;
+  autoSyncOnLogin: boolean;
+  rememberMe: boolean;
+  pinLockEnabled: boolean;
+  pinCode: string;
+  isAppLocked: boolean;
 }
 
 export interface TaskItem {
