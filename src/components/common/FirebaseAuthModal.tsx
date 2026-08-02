@@ -51,12 +51,14 @@ export const FirebaseAuthModal: React.FC<FirebaseAuthModalProps> = ({ isOpen, on
 
   const isConnected = settings.firebaseConnected && profile.uid && profile.uid !== 'local-user-1';
 
-  const handleGoogleSignIn = async () => {
+  const handleGoogleSignIn = async (useRedirect: boolean = false) => {
     setLoading(true);
     setStatusMsg(null);
-    const res = await loginWithGoogle();
+    const res = await loginWithGoogle({ useRedirect });
     setLoading(false);
-    if (res.success && res.user) {
+    if (res.redirecting) {
+      setStatusMsg({ type: 'success', text: 'Redirecting to Google for authentication...' });
+    } else if (res.success && res.user) {
       setStatusMsg({ type: 'success', text: `Signed in as ${res.user.email || res.user.displayName}!` });
       // Automatically push data or pull data after login
       await pullAllDataFromCloud(res.user.uid);
@@ -254,32 +256,46 @@ export const FirebaseAuthModal: React.FC<FirebaseAuthModalProps> = ({ isOpen, on
         ) : (
           /* Sign In / Register Forms */
           <div className="space-y-4">
-            {/* Quick Google Sign In */}
-            <button
-              onClick={handleGoogleSignIn}
-              disabled={loading}
-              className="w-full py-2.5 px-4 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-800 dark:text-white font-semibold text-xs transition-all flex items-center justify-center gap-2 shadow-sm active:scale-98"
-            >
-              <svg className="w-4 h-4" viewBox="0 0 24 24">
-                <path
-                  fill="#4285F4"
-                  d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"
-                />
-                <path
-                  fill="#34A853"
-                  d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.29v3.15C3.26 21.3 7.31 24 12 24z"
-                />
-                <path
-                  fill="#FBBC05"
-                  d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.29C.47 8.21 0 10.05 0 12s.47 3.79 1.29 5.42l3.99-3.15z"
-                />
-                <path
-                  fill="#EA4335"
-                  d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.58l3.99 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
-                />
-              </svg>
-              <span>{loading ? 'Connecting...' : 'Sign in with Google'}</span>
-            </button>
+            {/* Quick Google Sign In (Popup & Redirect options) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => handleGoogleSignIn(false)}
+                disabled={loading}
+                className="w-full py-2.5 px-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-800 dark:text-white font-semibold text-xs transition-all flex items-center justify-center gap-2 shadow-sm active:scale-98"
+                title="Sign in via Popup Window"
+              >
+                <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+                  <path
+                    fill="#4285F4"
+                    d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"
+                  />
+                  <path
+                    fill="#34A853"
+                    d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.29v3.15C3.26 21.3 7.31 24 12 24z"
+                  />
+                  <path
+                    fill="#FBBC05"
+                    d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.29C.47 8.21 0 10.05 0 12s.47 3.79 1.29 5.42l3.99-3.15z"
+                  />
+                  <path
+                    fill="#EA4335"
+                    d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.58l3.99 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
+                  />
+                </svg>
+                <span>{loading ? 'Connecting...' : 'Google Popup'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleGoogleSignIn(true)}
+                disabled={loading}
+                className="w-full py-2.5 px-3 rounded-xl border border-indigo-200 dark:border-indigo-800 bg-indigo-50/50 dark:bg-indigo-950/40 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 font-semibold text-xs transition-all flex items-center justify-center gap-2 shadow-sm active:scale-98"
+                title="Sign in via Redirect (Best for Mobile & Popup Blockers)"
+              >
+                <span>{loading ? 'Redirecting...' : 'Google Redirect'}</span>
+              </button>
+            </div>
 
             <div className="relative flex items-center justify-center my-3">
               <div className="border-t border-slate-200 dark:border-slate-800 w-full" />
@@ -451,7 +467,9 @@ export const FirebaseAuthModal: React.FC<FirebaseAuthModalProps> = ({ isOpen, on
                 </a>
               </li>
               <li>Enable Email/Password and Google in Authentication -&gt; Sign-in method.</li>
-              <li>Ensure <code className="bg-amber-200/50 dark:bg-amber-900/50 px-1 rounded">localhost</code> is added under Authentication -&gt; Settings -&gt; Authorized domains.</li>
+              <li>
+                Add your current domain (<code className="bg-amber-200/50 dark:bg-amber-900/50 px-1 rounded font-mono">{typeof window !== 'undefined' ? window.location.hostname : 'localhost'}</code>) under Authentication -&gt; Settings -&gt; Authorized domains.
+              </li>
               <li>Deploy <code className="bg-amber-200/50 dark:bg-amber-900/50 px-1 rounded">firestore.rules</code> using Firebase CLI: <code className="bg-amber-200/50 dark:bg-amber-900/50 px-1 rounded">firebase deploy --only firestore:rules</code></li>
             </ol>
           </div>

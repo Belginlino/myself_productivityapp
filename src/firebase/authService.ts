@@ -1,6 +1,8 @@
 import { Capacitor } from '@capacitor/core';
 import {
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   sendPasswordResetEmail,
@@ -16,27 +18,46 @@ export interface AuthResult {
   success: boolean;
   user?: User;
   error?: string;
+  redirecting?: boolean;
 }
 
-// Google Sign-In
-export const loginWithGoogle = async (): Promise<AuthResult> => {
+// Google Sign-In with Popup & Redirect Fallback
+export const loginWithGoogle = async (options?: { useRedirect?: boolean }): Promise<AuthResult> => {
+  const currentHostname = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
+
+  // If redirect is explicitly requested or on Capacitor native platform
+  if (options?.useRedirect) {
+    try {
+      await signInWithRedirect(auth, googleProvider);
+      return { success: true, redirecting: true };
+    } catch (err: any) {
+      console.error('Google Redirect Error:', err);
+      return { success: false, error: parseAuthError(err, currentHostname) };
+    }
+  }
+
   try {
     if (Capacitor.isNativePlatform()) {
       try {
         const result = await signInWithPopup(auth, googleProvider);
         return { success: true, user: result.user };
       } catch (popupErr: any) {
-        console.warn('Native Google Popup Warning:', popupErr);
+        console.warn('Native Google Popup Warning, falling back to redirect:', popupErr);
         if (
           popupErr.code === 'auth/popup-blocked' ||
           popupErr.code === 'auth/disallowed-useragent' ||
           popupErr.code === 'auth/operation-not-supported-in-this-environment' ||
           popupErr.message?.includes('useragent')
         ) {
-          return {
-            success: false,
-            error: 'Google OAuth restricts popup sign-ins inside Android WebViews. Please use "Sign in with Email" below for instant native mobile login.',
-          };
+          try {
+            await signInWithRedirect(auth, googleProvider);
+            return { success: true, redirecting: true };
+          } catch (redErr: any) {
+            return {
+              success: false,
+              error: 'Google OAuth restricts popups in Android WebViews. Please use Email Sign-In or open in system browser.',
+            };
+          }
         }
         throw popupErr;
       }
@@ -46,16 +67,47 @@ export const loginWithGoogle = async (): Promise<AuthResult> => {
     return { success: true, user: result.user };
   } catch (err: any) {
     console.error('Google Sign-In Error:', err);
-    let errorMessage = err.message || 'Failed to sign in with Google.';
-    if (err.code === 'auth/popup-closed-by-user') {
-      errorMessage = 'Sign-in popup was closed before completing.';
-    } else if (err.code === 'auth/unauthorized-domain') {
-      errorMessage = 'Domain not authorized in Firebase Console -> Authentication -> Settings -> Authorized domains.';
-    } else if (err.code === 'auth/disallowed-useragent' || err.message?.includes('useragent')) {
-      errorMessage = 'Google OAuth restricts popup sign-ins inside Android WebViews. Please use "Sign in with Email" below for native mobile access.';
+    
+    // Auto-fallback to redirect if popup is blocked
+    if (err.code === 'auth/popup-blocked') {
+      try {
+        console.warn('Popup blocked, attempting signInWithRedirect...');
+        await signInWithRedirect(auth, googleProvider);
+        return { success: true, redirecting: true };
+      } catch (redirectErr: any) {
+        return { success: false, error: parseAuthError(redirectErr, currentHostname) };
+      }
     }
-    return { success: false, error: errorMessage };
+
+    return { success: false, error: parseAuthError(err, currentHostname) };
   }
+};
+
+// Helper for user-friendly diagnostic error messages
+const parseAuthError = (err: any, currentHostname: string): string => {
+  const code = err.code || '';
+  const message = err.message || '';
+
+  if (code === 'auth/popup-closed-by-user') {
+    return 'Sign-in popup was closed before completing.';
+  }
+  if (code === 'auth/unauthorized-domain') {
+    return `Domain "${currentHostname}" is not authorized in Firebase Console -> Authentication -> Settings -> Authorized domains. Please add "${currentHostname}" to the list.`;
+  }
+  if (code === 'auth/operation-not-allowed') {
+    return 'Google provider is disabled. Please enable Google under Firebase Console -> Authentication -> Sign-in method.';
+  }
+  if (code === 'auth/invalid-api-key' || message.includes('API key') || message.includes('api-key-not-valid')) {
+    return 'Invalid Firebase API Key. Please verify your VITE_FIREBASE_API_KEY in .env file.';
+  }
+  if (code === 'auth/disallowed-useragent' || message.includes('useragent')) {
+    return 'Google OAuth restricts popup sign-ins inside embedded WebViews. Use Email login or Redirect sign-in.';
+  }
+  if (code === 'auth/network-request-failed') {
+    return 'Network request failed. Please check your internet connection.';
+  }
+  
+  return message || 'Failed to sign in with Google.';
 };
 
 // Email/Password Login
@@ -123,8 +175,19 @@ export const logoutFirebase = async (): Promise<AuthResult> => {
   }
 };
 
-// Auth Listener setup
+// Auth Listener setup & redirect processing
 export const initAuthListener = (onUserChange?: (user: User | null) => void) => {
+  // Process any pending Google Redirect Sign-In results
+  getRedirectResult(auth)
+    .then((result) => {
+      if (result?.user) {
+        console.log('Successfully signed in via Google Redirect:', result.user.email);
+      }
+    })
+    .catch((err) => {
+      console.error('Error handling redirect sign-in result:', err);
+    });
+
   return onAuthStateChanged(auth, (user) => {
     const { profile, updateProfile, updateSettings } = useAppStore.getState();
     if (user) {
