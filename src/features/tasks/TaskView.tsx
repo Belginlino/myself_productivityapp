@@ -5,20 +5,23 @@ import {
   Trash2,
   Edit2,
   Mic,
-  MicOff,
+  Square,
   Bell,
   BellOff,
   Calendar,
   CheckCircle2,
   ChevronDown,
   ChevronUp,
+  Circle,
+  Star,
 } from 'lucide-react';
 import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 import { Modal } from '../../components/common/Modal';
+import { VoiceNotePlayer } from '../../components/common/VoiceNotePlayer';
 import { useTaskStore } from '../../store/useTaskStore';
 import { TaskItem } from '../../types';
-import { speechService } from '../../services/speechService';
+import { audioRecorderService } from '../../services/audioRecorderService';
 import { requestNotificationPermissions } from '../../services/notificationService';
 
 export const TaskView: React.FC = () => {
@@ -35,9 +38,12 @@ export const TaskView: React.FC = () => {
   const [dueTime, setDueTime] = useState('');
   const [reminder, setReminder] = useState(true);
 
-  // Voice State
-  const [isListening, setIsListening] = useState(false);
-  const [voiceError, setVoiceError] = useState<string | null>(null);
+  // Voice Note Recording State
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const [recordedVoiceUrl, setRecordedVoiceUrl] = useState<string | undefined>(undefined);
+  const [recordedVoiceDuration, setRecordedVoiceDuration] = useState<number | undefined>(undefined);
+  const [audioError, setAudioError] = useState<string | null>(null);
 
   // Collapsible Completed Tasks Section
   const [showCompleted, setShowCompleted] = useState(true);
@@ -52,7 +58,9 @@ export const TaskView: React.FC = () => {
     setDueDate('');
     setDueTime('');
     setReminder(true);
-    setVoiceError(null);
+    setRecordedVoiceUrl(undefined);
+    setRecordedVoiceDuration(undefined);
+    setAudioError(null);
     setIsModalOpen(true);
   };
 
@@ -63,64 +71,83 @@ export const TaskView: React.FC = () => {
     setDueDate(task.dueDate || '');
     setDueTime(task.dueTime || '');
     setReminder(task.reminder);
-    setVoiceError(null);
+    setRecordedVoiceUrl(task.voiceNoteUrl);
+    setRecordedVoiceDuration(task.voiceNoteDuration);
+    setAudioError(null);
     setIsModalOpen(true);
   };
 
-  const handleStartVoice = () => {
-    setVoiceError(null);
-    if (!speechService.isSupported()) {
-      setVoiceError('Speech recognition is not supported in your browser.');
-      return;
+  const handleStartRecording = async () => {
+    setAudioError(null);
+    try {
+      setIsRecording(true);
+      setRecordingTime(0);
+      await audioRecorderService.startRecording((seconds) => {
+        setRecordingTime(seconds);
+      });
+    } catch (err: any) {
+      setIsRecording(false);
+      setAudioError(err.message || 'Failed to start microphone.');
     }
-
-    setIsListening(true);
-    speechService.startListening({
-      onResult: (text) => {
-        setTitle(text);
-      },
-      onError: (err) => {
-        setIsListening(false);
-        setVoiceError(err || 'Failed to hear audio.');
-      },
-      onEnd: () => {
-        setIsListening(false);
-      },
-    });
   };
 
-  const handleStopVoice = () => {
-    speechService.stopListening();
-    setIsListening(false);
+  const handleStopRecording = async () => {
+    try {
+      const result = await audioRecorderService.stopRecording();
+      setIsRecording(false);
+      setRecordedVoiceUrl(result.audioUrl);
+      setRecordedVoiceDuration(result.duration);
+    } catch (err: any) {
+      setIsRecording(false);
+      setAudioError(err.message || 'Failed to save audio recording.');
+    }
+  };
+
+  const handleCancelRecording = () => {
+    audioRecorderService.cancelRecording();
+    setIsRecording(false);
+    setRecordingTime(0);
   };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim()) return;
+    if (!title.trim() && !recordedVoiceUrl) return;
 
     if (reminder && dueDate) {
       await requestNotificationPermissions();
     }
 
+    const taskTitle = title.trim() || `Voice Note ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+
     if (editingTaskId) {
       updateTask(editingTaskId, {
-        title: title.trim(),
+        title: taskTitle,
         description: description.trim() || undefined,
         dueDate: dueDate || undefined,
         dueTime: dueTime || undefined,
         reminder,
+        voiceNoteUrl: recordedVoiceUrl,
+        voiceNoteDuration: recordedVoiceDuration,
       });
     } else {
       addTask({
-        title: title.trim(),
+        title: taskTitle,
         description: description.trim() || undefined,
         dueDate: dueDate || undefined,
         dueTime: dueTime || undefined,
         reminder,
+        voiceNoteUrl: recordedVoiceUrl,
+        voiceNoteDuration: recordedVoiceDuration,
       });
     }
 
     setIsModalOpen(false);
+  };
+
+  const formatRecordingTime = (secs: number) => {
+    const m = Math.floor(secs / 60);
+    const s = Math.floor(secs % 60);
+    return `${m}:${s < 10 ? '0' : ''}${s}`;
   };
 
   return (
@@ -133,7 +160,7 @@ export const TaskView: React.FC = () => {
             Task Management
           </h2>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-neutral-400 mt-1">
-            Organize daily tasks, set deadline notifications, and create tasks with voice.
+            Organize tasks and record WhatsApp-style voice messages.
           </p>
         </div>
 
@@ -146,10 +173,10 @@ export const TaskView: React.FC = () => {
         </Button>
       </div>
 
-      {/* Active Tasks List */}
-      <div className="space-y-4">
-        <h3 className="text-xs font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-widest">
-          Active Tasks ({activeTasks.length})
+      {/* Active Tasks List - Styled to match user image screenshot */}
+      <div className="space-y-3">
+        <h3 className="text-xs font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-widest px-1">
+          Tasks ({activeTasks.length})
         </h3>
 
         {activeTasks.length === 0 ? (
@@ -157,7 +184,7 @@ export const TaskView: React.FC = () => {
             <CheckCircle2 className="w-10 h-10 text-slate-400 dark:text-neutral-500 mx-auto mb-3 opacity-60" />
             <h4 className="font-bold text-sm text-slate-900 dark:text-white">No Pending Tasks</h4>
             <p className="text-xs text-slate-500 dark:text-neutral-400 mt-1">
-              You are all caught up. Click "Add Task" to create a new task.
+              You are all caught up. Click "Add Task" or record a voice message.
             </p>
             <Button
               variant="secondary"
@@ -170,67 +197,75 @@ export const TaskView: React.FC = () => {
           </Card>
         ) : (
           activeTasks.map((task) => (
-            <Card
+            <div
               key={task.id}
-              className="p-5 flex items-center justify-between gap-4 group"
+              className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#141414] border border-slate-200 dark:border-white/10 hover:border-slate-400 dark:hover:border-white/25 transition-all flex items-center justify-between gap-4 group shadow-sm"
             >
-              <div className="flex items-start gap-4 min-w-0">
-                <button
-                  onClick={() => toggleTaskComplete(task.id)}
-                  className="mt-0.5 w-5 h-5 rounded-full border-2 border-slate-400 dark:border-white/30 hover:border-slate-900 dark:hover:border-white flex items-center justify-center transition-colors shrink-0"
-                >
-                  <span className="sr-only">Complete task</span>
-                </button>
+              {/* Left Circle Checkbox */}
+              <button
+                onClick={() => toggleTaskComplete(task.id)}
+                className="w-6 h-6 rounded-full border-2 border-slate-400 dark:border-white/40 hover:border-slate-900 dark:hover:border-white flex items-center justify-center transition-colors shrink-0"
+              >
+                <Circle className="w-5 h-5 text-transparent" />
+              </button>
 
-                <div className="min-w-0 space-y-1.5">
-                  <h4 className="text-sm font-bold text-slate-900 dark:text-white truncate">
-                    {task.title}
-                  </h4>
-                  {task.description && (
-                    <p className="text-xs text-slate-500 dark:text-neutral-400 leading-relaxed">
-                      {task.description}
-                    </p>
-                  )}
+              {/* Center Content */}
+              <div className="flex-1 min-w-0 space-y-1">
+                <h4 className="text-sm font-bold text-slate-900 dark:text-white leading-tight truncate">
+                  {task.title}
+                </h4>
 
-                  {/* Deadline & Reminder Pills */}
-                  <div className="flex flex-wrap items-center gap-2 pt-1">
-                    {task.dueDate && (
-                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-3 py-1 rounded-full bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-white border border-slate-200 dark:border-white/15">
-                        <Calendar className="w-3 h-3 text-slate-900 dark:text-white" />
-                        {task.dueDate} {task.dueTime ? `@ ${task.dueTime}` : ''}
-                      </span>
-                    )}
-                    {task.reminder ? (
-                      <span className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-700 dark:text-neutral-300">
-                        <Bell className="w-3 h-3 text-slate-900 dark:text-white" /> Reminder On
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 text-[11px] text-slate-400 dark:text-neutral-500">
-                        <BellOff className="w-3 h-3" /> Silent
-                      </span>
-                    )}
+                {task.description && (
+                  <p className="text-xs text-slate-500 dark:text-neutral-400 leading-relaxed">
+                    {task.description}
+                  </p>
+                )}
+
+                {/* Audio Voice Note Player (WhatsApp Style) */}
+                {task.voiceNoteUrl && (
+                  <div className="pt-1">
+                    <VoiceNotePlayer
+                      audioUrl={task.voiceNoteUrl}
+                      duration={task.voiceNoteDuration}
+                    />
                   </div>
+                )}
+
+                {/* Subtitle & Date pill */}
+                <div className="flex flex-wrap items-center gap-2 pt-0.5 text-xs text-slate-500 dark:text-neutral-400">
+                  <span className="font-medium">Tasks</span>
+                  {task.dueDate && (
+                    <span className="flex items-center gap-1 text-red-500 font-semibold text-[11px]">
+                      • <Calendar className="w-3 h-3" /> {task.dueDate} {task.dueTime ? `@ ${task.dueTime}` : ''}
+                    </span>
+                  )}
+                  {task.reminder && (
+                    <span className="flex items-center gap-1 text-[11px] text-slate-400 dark:text-neutral-400">
+                      • <Bell className="w-3 h-3" />
+                    </span>
+                  )}
                 </div>
               </div>
 
-              {/* Actions */}
-              <div className="flex items-center gap-1 shrink-0 opacity-80 group-hover:opacity-100 transition-opacity">
+              {/* Right Star & Actions */}
+              <div className="flex items-center gap-2 shrink-0">
                 <button
                   onClick={() => openEditModal(task)}
-                  className="p-2.5 rounded-full text-slate-400 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
+                  className="p-2 rounded-full text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
                   title="Edit task"
                 >
                   <Edit2 className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => deleteTask(task.id)}
-                  className="p-2.5 rounded-full text-slate-400 dark:text-neutral-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
+                  className="p-2 rounded-full text-slate-400 hover:text-red-500 transition-colors"
                   title="Delete task"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
+                <Star className="w-4 h-4 text-pink-300 dark:text-pink-400 fill-pink-300 dark:fill-pink-400 opacity-80" />
               </div>
-            </Card>
+            </div>
           ))
         )}
       </div>
@@ -249,9 +284,9 @@ export const TaskView: React.FC = () => {
           {showCompleted && (
             <div className="space-y-3">
               {completedTasks.map((task) => (
-                <Card
+                <div
                   key={task.id}
-                  className="p-4 flex items-center justify-between gap-4 bg-slate-50 dark:bg-white/[0.02] opacity-70 border-slate-200/80 dark:border-white/10"
+                  className="p-4 rounded-2xl bg-slate-50 dark:bg-white/[0.02] opacity-70 border border-slate-200/80 dark:border-white/10 flex items-center justify-between gap-4"
                 >
                   <div className="flex items-center gap-3.5 min-w-0">
                     <button
@@ -264,16 +299,24 @@ export const TaskView: React.FC = () => {
                       <h4 className="text-sm font-semibold line-through text-slate-400 dark:text-neutral-400 truncate">
                         {task.title}
                       </h4>
+                      {task.voiceNoteUrl && (
+                        <div className="pt-1 opacity-60">
+                          <VoiceNotePlayer
+                            audioUrl={task.voiceNoteUrl}
+                            duration={task.voiceNoteDuration}
+                          />
+                        </div>
+                      )}
                     </div>
                   </div>
 
                   <button
                     onClick={() => deleteTask(task.id)}
-                    className="p-2 text-slate-400 dark:text-neutral-500 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                    className="p-2 text-slate-400 dark:text-neutral-500 hover:text-red-500 transition-colors"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
-                </Card>
+                </div>
               ))}
             </div>
           )}
@@ -284,64 +327,100 @@ export const TaskView: React.FC = () => {
       <Modal
         isOpen={isModalOpen}
         onClose={() => {
-          if (isListening) speechService.stopListening();
+          if (isRecording) handleCancelRecording();
           setIsModalOpen(false);
         }}
-        title={editingTaskId ? 'Edit Task' : 'Create Task'}
+        title={editingTaskId ? 'Edit Task' : 'Create Task / Voice Message'}
       >
         <form onSubmit={handleSave} className="space-y-5">
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="block text-xs font-semibold text-slate-700 dark:text-neutral-300">
-                Task Title <span className="text-red-500 dark:text-white">*</span>
-              </label>
+          {/* Audio Voice Recorder (WhatsApp style) */}
+          <div className="p-4 rounded-3xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <Mic className="w-4 h-4 text-slate-900 dark:text-white" /> WhatsApp Voice Message
+              </span>
 
-              <button
-                type="button"
-                onClick={isListening ? handleStopVoice : handleStartVoice}
-                className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold transition-all ${
-                  isListening
-                    ? 'bg-red-500 text-white animate-pulse'
-                    : 'bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-white border border-slate-200 dark:border-white/15 hover:bg-slate-200 dark:hover:bg-white/20'
-                }`}
-              >
-                {isListening ? (
-                  <>
-                    <MicOff className="w-3.5 h-3.5" /> Listening...
-                  </>
-                ) : (
-                  <>
-                    <Mic className="w-3.5 h-3.5" /> Voice Input
-                  </>
-                )}
-              </button>
+              {isRecording && (
+                <span className="text-xs font-mono font-bold text-red-500 animate-pulse flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-red-500" />
+                  {formatRecordingTime(recordingTime)}
+                </span>
+              )}
             </div>
 
+            {/* Recording Actions */}
+            {isRecording ? (
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleStopRecording}
+                  className="flex-1 py-2.5 rounded-full bg-red-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md hover:bg-red-600 transition-all"
+                >
+                  <Square className="w-4 h-4 fill-white" /> Stop & Attach Audio
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCancelRecording}
+                  className="p-2.5 rounded-full text-slate-400 hover:text-red-500 transition-colors"
+                  title="Discard recording"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            ) : recordedVoiceUrl ? (
+              <div className="space-y-2">
+                <p className="text-[11px] text-slate-500 dark:text-neutral-400">Recorded Audio Message:</p>
+                <VoiceNotePlayer
+                  audioUrl={recordedVoiceUrl}
+                  duration={recordedVoiceDuration}
+                  onDelete={() => {
+                    setRecordedVoiceUrl(undefined);
+                    setRecordedVoiceDuration(undefined);
+                  }}
+                />
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={handleStartRecording}
+                className="w-full py-3 rounded-full bg-slate-900 dark:bg-white text-white dark:text-black font-bold text-xs flex items-center justify-center gap-2 shadow-md hover:scale-[1.01] active:scale-98 transition-all"
+              >
+                <Mic className="w-4 h-4" /> Hold / Click to Record Voice Message
+              </button>
+            )}
+
+            {audioError && <p className="text-[11px] text-red-500 font-medium">{audioError}</p>}
+          </div>
+
+          {/* Task Title Input */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 dark:text-neutral-300 mb-2">
+              Task Title (Optional if voice recorded)
+            </label>
             <input
               type="text"
-              required
-              placeholder="e.g., Complete project proposal"
+              placeholder="e.g., Internship report, Study Java..."
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               className="w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:border-slate-400 dark:focus:border-white/30"
             />
-
-            {voiceError && <p className="text-[11px] text-red-500 dark:text-red-400 mt-1">{voiceError}</p>}
           </div>
 
+          {/* Description */}
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-neutral-300 mb-2">
               Description (Optional)
             </label>
             <textarea
               rows={2}
-              placeholder="Add extra context or steps..."
+              placeholder="Add additional text details..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               className="w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:border-slate-400 dark:focus:border-white/30"
             />
           </div>
 
+          {/* Due Date & Time */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-neutral-300 mb-2">
@@ -368,6 +447,7 @@ export const TaskView: React.FC = () => {
             </div>
           </div>
 
+          {/* Reminder Toggle */}
           <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10">
             <div className="flex items-center gap-3">
               <Bell className="w-4 h-4 text-slate-900 dark:text-white" />

@@ -13,6 +13,9 @@ import {
   Bell,
   BellOff,
   RotateCcw,
+  ChevronLeft,
+  ChevronRight,
+  Check,
 } from 'lucide-react';
 import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
@@ -41,6 +44,9 @@ export const RoutineView: React.FC = () => {
   const [time, setTime] = useState('08:00');
   const [repeatEveryDay, setRepeatEveryDay] = useState(true);
   const [reminder, setReminder] = useState(true);
+
+  // Calendar View Month State
+  const [viewDate, setViewDate] = useState(new Date());
 
   const todayStr = new Date().toISOString().split('T')[0];
 
@@ -91,57 +97,117 @@ export const RoutineView: React.FC = () => {
     setIsModalOpen(false);
   };
 
-  // Calendar History Generator for Current Month
+  // Calendar History Generator for Current Selected Month
   const renderCalendarHistory = () => {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth();
+    const year = viewDate.getFullYear();
+    const month = viewDate.getMonth();
 
+    const monthName = viewDate.toLocaleString('default', { month: 'long' });
+    const firstDayOfWeek = new Date(year, month, 1).getDay(); // 0 = Sun, 1 = Mon ...
     const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const monthName = now.toLocaleString('default', { month: 'long' });
+
+    // Create empty padding cells for starting day offset
+    const paddingCells = Array.from({ length: firstDayOfWeek }, (_, i) => i);
+
+    let completedDaysCount = 0;
 
     const daysArray = Array.from({ length: daysInMonth }, (_, i) => {
       const dayNum = i + 1;
       const dayStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
+      const isCompleted = streakData.calendarHistory[dayStr] === true;
+      if (isCompleted) completedDaysCount++;
+
       return {
         dayNum,
         dayStr,
-        isCompleted: streakData.calendarHistory[dayStr] === true,
+        isCompleted,
         isToday: dayStr === todayStr,
       };
     });
 
+    const handlePrevMonth = () => {
+      setViewDate(new Date(year, month - 1, 1));
+    };
+
+    const handleNextMonth = () => {
+      setViewDate(new Date(year, month + 1, 1));
+    };
+
+    const handleTodayReset = () => {
+      setViewDate(new Date());
+    };
+
     return (
-      <Card className="p-6 space-y-4">
-        <div className="flex items-center justify-between pb-4 border-b border-slate-200/80 dark:border-white/10">
+      <Card className="p-6 space-y-5">
+        {/* Calendar Header with Navigation Controls */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200/80 dark:border-white/10">
           <div className="flex items-center gap-2.5">
             <CalendarIcon className="w-5 h-5 text-slate-900 dark:text-white" />
-            <h3 className="font-extrabold text-sm text-slate-900 dark:text-white">
-              Calendar History - {monthName} {year}
-            </h3>
+            <div>
+              <h3 className="font-extrabold text-base text-slate-900 dark:text-white">
+                {monthName} {year}
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-neutral-400">
+                {completedDaysCount} of {daysInMonth} routine streak days completed
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 self-end sm:self-auto">
+            <button
+              onClick={handleTodayReset}
+              className="px-3 py-1 rounded-full text-xs font-bold bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-neutral-200 hover:bg-slate-200 dark:hover:bg-white/20 transition-colors"
+            >
+              Today
+            </button>
+            <button
+              onClick={handlePrevMonth}
+              className="p-1.5 rounded-full text-slate-500 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
+              title="Previous month"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <button
+              onClick={handleNextMonth}
+              className="p-1.5 rounded-full text-slate-500 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
+              title="Next month"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
           </div>
         </div>
 
+        {/* 7-Day Day of Week Header */}
         <div className="grid grid-cols-7 gap-2 text-center">
           {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) => (
-            <span key={d} className="text-[11px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider">
+            <span key={d} className="text-[11px] font-bold text-slate-400 dark:text-neutral-400 uppercase tracking-wider py-1">
               {d}
             </span>
           ))}
 
+          {/* Empty Offset Padding Cells */}
+          {paddingCells.map((_, idx) => (
+            <div key={`pad-${idx}`} className="h-11 sm:h-12" />
+          ))}
+
+          {/* Actual Month Days */}
           {daysArray.map((day) => (
             <div
               key={day.dayStr}
-              className={`p-2.5 rounded-2xl text-xs font-bold flex flex-col items-center justify-center transition-all ${
+              className={`h-11 sm:h-12 rounded-2xl text-xs font-bold flex flex-col items-center justify-center relative transition-all ${
                 day.isCompleted
                   ? 'bg-slate-900 dark:bg-white text-white dark:text-black font-extrabold shadow-md'
                   : day.isToday
-                  ? 'border-2 border-slate-900 dark:border-white text-slate-900 dark:text-white bg-slate-100 dark:bg-white/10'
-                  : 'bg-slate-50 dark:bg-white/[0.03] text-slate-600 dark:text-neutral-400 border border-slate-200/80 dark:border-white/10'
+                  ? 'border-2 border-slate-900 dark:border-white text-slate-900 dark:text-white bg-slate-100 dark:bg-white/10 font-bold'
+                  : 'bg-slate-50 dark:bg-white/[0.03] text-slate-700 dark:text-neutral-300 border border-slate-200/80 dark:border-white/10'
               }`}
             >
               <span>{day.dayNum}</span>
-              {day.isCompleted && <span className="text-[9px]">✓</span>}
+              {day.isCompleted && (
+                <span className="text-[9px] mt-0.5">
+                  <Check className="w-3 h-3 stroke-[3]" />
+                </span>
+              )}
             </div>
           ))}
         </div>

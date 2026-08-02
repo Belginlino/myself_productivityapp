@@ -7,9 +7,11 @@ import {
   Calendar,
   ArrowRight,
   CheckCircle2,
+  Circle,
 } from 'lucide-react';
 import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
+import { VoiceNotePlayer } from '../../components/common/VoiceNotePlayer';
 import { useAppStore } from '../../store/useAppStore';
 import { useTaskStore } from '../../store/useTaskStore';
 import { useRoutineStore } from '../../store/useRoutineStore';
@@ -54,9 +56,8 @@ export const HomeView: React.FC<HomeViewProps> = ({ onOpenAddTask, onOpenAddRout
 
   return (
     <div className="space-y-8 pb-12 animate-fadeIn">
-      {/* Top Banner - Hero Card (Always Dark Luxury Style for High Contrast) */}
+      {/* Top Banner - Hero Card */}
       <div className="relative overflow-hidden rounded-4xl bg-gradient-to-r from-slate-900 via-black to-slate-950 border border-slate-800 dark:border-white/15 p-8 sm:p-10 shadow-xl shadow-black/20 text-white">
-        {/* Smoky Background Glow */}
         <div className="absolute top-0 right-0 -mt-10 -mr-10 w-72 h-72 rounded-full bg-white/[0.05] blur-3xl pointer-events-none" />
 
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -187,17 +188,28 @@ export const HomeView: React.FC<HomeViewProps> = ({ onOpenAddTask, onOpenAddRout
                   onClick={() => toggleTaskComplete(task.id)}
                   className="p-4 rounded-2xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 hover:border-slate-400 dark:hover:border-white/25 hover:bg-slate-100 dark:hover:bg-white/[0.06] cursor-pointer transition-all flex items-center justify-between group"
                 >
-                  <div className="flex items-center gap-3.5 min-w-0">
-                    <input
-                      type="checkbox"
-                      checked={false}
-                      onChange={() => {}}
-                      className="w-4 h-4 rounded-full border-slate-400 dark:border-white/30 text-slate-900 dark:text-white focus:ring-0 cursor-pointer"
-                    />
+                  <div className="flex items-start gap-3.5 min-w-0">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleTaskComplete(task.id);
+                      }}
+                      className="mt-0.5 w-5 h-5 rounded-full border-2 border-slate-400 dark:border-white/40 hover:border-slate-900 dark:hover:border-white flex items-center justify-center transition-colors shrink-0"
+                    >
+                      <Circle className="w-4 h-4 text-transparent" />
+                    </button>
                     <div className="min-w-0">
                       <h3 className="text-xs font-bold text-slate-900 dark:text-white truncate">
                         {task.title}
                       </h3>
+                      {task.voiceNoteUrl && (
+                        <div className="pt-1">
+                          <VoiceNotePlayer
+                            audioUrl={task.voiceNoteUrl}
+                            duration={task.voiceNoteDuration}
+                          />
+                        </div>
+                      )}
                       {task.dueDate && (
                         <p className="text-[11px] text-slate-500 dark:text-neutral-400 mt-0.5">
                           Due: {task.dueDate} {task.dueTime ? `@ ${task.dueTime}` : ''}

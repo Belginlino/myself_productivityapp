@@ -24,6 +24,8 @@ export interface TaskItem {
   dueTime?: string; // HH:mm
   reminder: boolean;
   voiceNote?: string;
+  voiceNoteUrl?: string; // Audio Data URL (base64) for WhatsApp-style voice message
+  voiceNoteDuration?: number; // Duration in seconds
   status: 'pending' | 'completed';
   completedAt?: string;
   createdAt: string;

@@ -4,8 +4,9 @@ import { Button } from '../common/Button';
 import { useAppStore } from '../../store/useAppStore';
 import { useTaskStore } from '../../store/useTaskStore';
 import { useRoutineStore } from '../../store/useRoutineStore';
-import { CheckSquare, Clock, Mic, MicOff } from 'lucide-react';
-import { speechService } from '../../services/speechService';
+import { CheckSquare, Clock, Mic, Square, Trash2 } from 'lucide-react';
+import { audioRecorderService } from '../../services/audioRecorderService';
+import { VoiceNotePlayer } from '../common/VoiceNotePlayer';
 
 export const QuickAddModal: React.FC = () => {
   const { isQuickAddOpen, toggleQuickAdd } = useAppStore();
@@ -18,47 +19,58 @@ export const QuickAddModal: React.FC = () => {
   const [dueDate, setDueDate] = useState('');
   const [dueTime, setDueTime] = useState('');
 
-  // Voice State
-  const [isListening, setIsListening] = useState(false);
-  const [voiceError, setVoiceError] = useState<string | null>(null);
+  // Audio Voice Note Recording State
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const [recordedVoiceUrl, setRecordedVoiceUrl] = useState<string | undefined>(undefined);
+  const [recordedVoiceDuration, setRecordedVoiceDuration] = useState<number | undefined>(undefined);
+  const [audioError, setAudioError] = useState<string | null>(null);
 
-  const handleStartVoice = () => {
-    setVoiceError(null);
-    if (!speechService.isSupported()) {
-      setVoiceError('Speech recognition is not supported in your browser.');
-      return;
+  const handleStartRecording = async () => {
+    setAudioError(null);
+    try {
+      setIsRecording(true);
+      setRecordingTime(0);
+      await audioRecorderService.startRecording((seconds) => {
+        setRecordingTime(seconds);
+      });
+    } catch (err: any) {
+      setIsRecording(false);
+      setAudioError(err.message || 'Microphone access failed.');
     }
-
-    setIsListening(true);
-    speechService.startListening({
-      onResult: (text) => {
-        setTitle(text);
-      },
-      onError: (err) => {
-        setIsListening(false);
-        setVoiceError(err || 'Failed to capture voice.');
-      },
-      onEnd: () => {
-        setIsListening(false);
-      },
-    });
   };
 
-  const handleStopVoice = () => {
-    speechService.stopListening();
-    setIsListening(false);
+  const handleStopRecording = async () => {
+    try {
+      const result = await audioRecorderService.stopRecording();
+      setIsRecording(false);
+      setRecordedVoiceUrl(result.audioUrl);
+      setRecordedVoiceDuration(result.duration);
+    } catch (err: any) {
+      setIsRecording(false);
+      setAudioError(err.message || 'Failed to save recording.');
+    }
+  };
+
+  const handleCancelRecording = () => {
+    audioRecorderService.cancelRecording();
+    setIsRecording(false);
+    setRecordingTime(0);
   };
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim()) return;
+    if (!title.trim() && !recordedVoiceUrl) return;
 
     if (itemType === 'task') {
+      const taskTitle = title.trim() || `Voice Note ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
       addTask({
-        title: title.trim(),
+        title: taskTitle,
         dueDate: dueDate || undefined,
         dueTime: dueTime || undefined,
         reminder: true,
+        voiceNoteUrl: recordedVoiceUrl,
+        voiceNoteDuration: recordedVoiceDuration,
       });
     } else {
       addRoutine({
@@ -73,29 +85,37 @@ export const QuickAddModal: React.FC = () => {
     setDueDate('');
     setDueTime('');
     setTime('08:00');
-    if (isListening) speechService.stopListening();
+    setRecordedVoiceUrl(undefined);
+    setRecordedVoiceDuration(undefined);
+    if (isRecording) handleCancelRecording();
     toggleQuickAdd(false);
+  };
+
+  const formatRecordingTime = (secs: number) => {
+    const m = Math.floor(secs / 60);
+    const s = Math.floor(secs % 60);
+    return `${m}:${s < 10 ? '0' : ''}${s}`;
   };
 
   return (
     <Modal
       isOpen={isQuickAddOpen}
       onClose={() => {
-        if (isListening) speechService.stopListening();
+        if (isRecording) handleCancelRecording();
         toggleQuickAdd(false);
       }}
       title="Quick Add"
     >
       <form onSubmit={handleSave} className="space-y-5">
         {/* Item Type Selector */}
-        <div className="grid grid-cols-2 gap-2 p-1.5 bg-black/10 dark:bg-white/10 rounded-full border border-black/5 dark:border-white/10 backdrop-blur-md">
+        <div className="grid grid-cols-2 gap-2 p-1.5 bg-slate-100 dark:bg-white/10 rounded-full border border-slate-200/80 dark:border-white/10 backdrop-blur-md">
           <button
             type="button"
             onClick={() => setItemType('task')}
             className={`flex items-center justify-center gap-2 py-2.5 rounded-full font-bold text-xs transition-all ${
               itemType === 'task'
-                ? 'bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.25)]'
-                : 'text-neutral-400 hover:text-white'
+                ? 'bg-slate-900 text-white dark:bg-white dark:text-black shadow-md'
+                : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             <CheckSquare className="w-4 h-4" /> Task
@@ -105,80 +125,114 @@ export const QuickAddModal: React.FC = () => {
             onClick={() => setItemType('routine')}
             className={`flex items-center justify-center gap-2 py-2.5 rounded-full font-bold text-xs transition-all ${
               itemType === 'routine'
-                ? 'bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.25)]'
-                : 'text-neutral-400 hover:text-white'
+                ? 'bg-slate-900 text-white dark:bg-white dark:text-black shadow-md'
+                : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             <Clock className="w-4 h-4" /> Routine
           </button>
         </div>
 
-        {/* Title Input & Voice Microphone Button */}
-        <div>
-          <div className="flex items-center justify-between mb-2">
-            <label className="block text-xs font-semibold text-neutral-300">
-              {itemType === 'task' ? 'Task Title' : 'Routine Title'}{' '}
-              <span className="text-white">*</span>
-            </label>
+        {/* WhatsApp Voice Note Recording section for Tasks */}
+        {itemType === 'task' && (
+          <div className="p-4 rounded-3xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <Mic className="w-4 h-4 text-slate-900 dark:text-white" /> WhatsApp Voice Message
+              </span>
 
-            {itemType === 'task' && (
+              {isRecording && (
+                <span className="text-xs font-mono font-bold text-red-500 animate-pulse flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-red-500" />
+                  {formatRecordingTime(recordingTime)}
+                </span>
+              )}
+            </div>
+
+            {isRecording ? (
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleStopRecording}
+                  className="flex-1 py-2.5 rounded-full bg-red-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md hover:bg-red-600 transition-all"
+                >
+                  <Square className="w-4 h-4 fill-white" /> Stop & Attach Audio
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCancelRecording}
+                  className="p-2.5 rounded-full text-slate-400 hover:text-red-500 transition-colors"
+                  title="Discard recording"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            ) : recordedVoiceUrl ? (
+              <div className="space-y-2">
+                <p className="text-[11px] text-slate-500 dark:text-neutral-400">Recorded Voice Message:</p>
+                <VoiceNotePlayer
+                  audioUrl={recordedVoiceUrl}
+                  duration={recordedVoiceDuration}
+                  onDelete={() => {
+                    setRecordedVoiceUrl(undefined);
+                    setRecordedVoiceDuration(undefined);
+                  }}
+                />
+              </div>
+            ) : (
               <button
                 type="button"
-                onClick={isListening ? handleStopVoice : handleStartVoice}
-                className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold transition-all ${
-                  isListening
-                    ? 'bg-red-500 text-white animate-pulse'
-                    : 'bg-white/10 text-white border border-white/15 hover:bg-white/20'
-                }`}
+                onClick={handleStartRecording}
+                className="w-full py-3 rounded-full bg-slate-900 dark:bg-white text-white dark:text-black font-bold text-xs flex items-center justify-center gap-2 shadow-md hover:scale-[1.01] active:scale-98 transition-all"
               >
-                {isListening ? (
-                  <>
-                    <MicOff className="w-3.5 h-3.5" /> Listening...
-                  </>
-                ) : (
-                  <>
-                    <Mic className="w-3.5 h-3.5" /> Voice Task
-                  </>
-                )}
+                <Mic className="w-4 h-4" /> Click to Record Voice Message
               </button>
             )}
+
+            {audioError && <p className="text-[11px] text-red-500 font-medium">{audioError}</p>}
           </div>
+        )}
+
+        {/* Title Input */}
+        <div>
+          <label className="block text-xs font-semibold text-slate-700 dark:text-neutral-300 mb-2">
+            {itemType === 'task' ? 'Task Title (Optional if voice recorded)' : 'Routine Title'}{' '}
+            {itemType === 'routine' && <span className="text-red-500 dark:text-white">*</span>}
+          </label>
 
           <input
             type="text"
-            required
-            placeholder={itemType === 'task' ? 'e.g., Send status report' : 'e.g., Exercise & Stretch'}
+            required={itemType === 'routine' && !recordedVoiceUrl}
+            placeholder={itemType === 'task' ? 'e.g., Internship report, Study Java' : 'e.g., Exercise & Stretch'}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full px-4 py-3 rounded-2xl border border-white/10 bg-white/5 text-sm text-white placeholder:text-neutral-500 focus:outline-none focus:border-white/30"
+            className="w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:border-slate-400 dark:focus:border-white/30"
           />
-
-          {voiceError && <p className="text-[11px] text-red-400 mt-1">{voiceError}</p>}
         </div>
 
         {/* Task Specific Fields */}
         {itemType === 'task' && (
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-neutral-300 mb-2">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-neutral-300 mb-2">
                 Due Date
               </label>
               <input
                 type="date"
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-2xl border border-white/10 bg-white/5 text-sm text-white focus:outline-none"
+                className="w-full px-3.5 py-2.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-sm text-slate-900 dark:text-white focus:outline-none"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-neutral-300 mb-2">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-neutral-300 mb-2">
                 Due Time
               </label>
               <input
                 type="time"
                 value={dueTime}
                 onChange={(e) => setDueTime(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-2xl border border-white/10 bg-white/5 text-sm text-white focus:outline-none"
+                className="w-full px-3.5 py-2.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-sm text-slate-900 dark:text-white focus:outline-none"
               />
             </div>
           </div>
@@ -187,14 +241,14 @@ export const QuickAddModal: React.FC = () => {
         {/* Routine Specific Fields */}
         {itemType === 'routine' && (
           <div>
-            <label className="block text-xs font-semibold text-neutral-300 mb-2">
+            <label className="block text-xs font-semibold text-slate-700 dark:text-neutral-300 mb-2">
               Scheduled Time
             </label>
             <input
               type="time"
               value={time}
               onChange={(e) => setTime(e.target.value)}
-              className="w-full px-4 py-3 rounded-2xl border border-white/10 bg-white/5 text-sm text-white focus:outline-none"
+              className="w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-sm text-slate-900 dark:text-white focus:outline-none"
             />
           </div>
         )}
@@ -204,7 +258,7 @@ export const QuickAddModal: React.FC = () => {
             type="button"
             variant="ghost"
             onClick={() => {
-              if (isListening) speechService.stopListening();
+              if (isRecording) handleCancelRecording();
               toggleQuickAdd(false);
             }}
           >
