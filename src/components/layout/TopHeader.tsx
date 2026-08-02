@@ -1,17 +1,7 @@
 import React, { useState } from 'react';
-import {
-  Plus,
-  Moon,
-  Sun,
-  Bell,
-  Coins,
-  Flame,
-  Check,
-  Sparkles,
-  Cloud,
-} from 'lucide-react';
-
+import { Plus, Moon, Sun, Bell, Flame, Check, Cloud } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
+import { useRoutineStore } from '../../store/useRoutineStore';
 import { FirebaseAuthModal } from '../common/FirebaseAuthModal';
 import { loginWithGoogle } from '../../firebase/authService';
 import { pullAllDataFromCloud } from '../../firebase/syncService';
@@ -27,40 +17,44 @@ export const TopHeader: React.FC = () => {
     markNotificationsAsRead,
   } = useAppStore();
 
+  const { streakData } = useRoutineStore();
+
   const [showNotifications, setShowNotifications] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-20 bg-white/80 dark:bg-slate-900/80 amoled:bg-amoled-card/90 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 amoled:border-amoled-border px-4 lg:px-8 py-3 flex items-center justify-between gap-4 transition-colors">
-      {/* Left: Mobile Title */}
+    <header className="sticky top-0 z-20 bg-white/80 dark:bg-[rgba(5,5,5,0.7)] backdrop-blur-2xl border-b border-slate-200/80 dark:border-white/10 px-4 lg:px-8 py-3.5 flex items-center justify-between gap-4 transition-colors">
+      {/* Left: Mobile Logo */}
       <div className="flex items-center gap-2 sm:gap-3">
-        <div className="lg:hidden flex items-center gap-1.5 font-black text-sm text-slate-900 dark:text-white shrink-0">
-          <img src="/favicon.svg" alt="Myself Logo" className="w-7 h-7 rounded-lg shadow-sm" />
+        <div className="lg:hidden flex items-center gap-2.5 font-black text-base text-slate-900 dark:text-white shrink-0">
+          <img src="/favicon.svg" alt="Myself Logo" className="w-8 h-8 rounded-xl shadow-md" />
           <span className="tracking-tight">Myself</span>
         </div>
       </div>
 
-      {/* Right: Gamification Badges & Action Icons */}
+      {/* Right: Actions & Badges */}
       <div className="flex items-center gap-3">
         {/* Streak Counter */}
-        <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 text-xs font-bold">
-          <Flame className="w-4 h-4 text-amber-500 fill-amber-500" />
-          <span>{profile.streak} Day Streak</span>
+        <div className="hidden sm:flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-100 dark:bg-white/10 border border-slate-200/80 dark:border-white/15 text-slate-900 dark:text-white text-xs font-bold shadow-sm">
+          <Flame className="w-4 h-4 text-slate-900 dark:text-white fill-slate-900 dark:fill-white" />
+          <span>{streakData.currentStreak} Day Streak</span>
         </div>
 
-        {/* Firebase Cloud & Google Login Button */}
+        {/* Firebase Cloud Sync Status / Google Sign In */}
         {settings.firebaseConnected && profile.uid && profile.uid !== 'local-user-1' ? (
           <button
             onClick={() => setIsAuthModalOpen(true)}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 text-xs font-semibold transition-all"
-            title="Manage Firebase Cloud Sync"
+            className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-white border border-slate-200/80 dark:border-white/15 hover:bg-slate-200 dark:hover:bg-white/20 text-xs font-semibold transition-all"
+            title="Cloud Synced"
           >
             {profile.photoURL ? (
               <img src={profile.photoURL} alt="Avatar" className="w-4 h-4 rounded-full" />
             ) : (
-              <Cloud className="w-4 h-4 text-emerald-500" />
+              <Cloud className="w-4 h-4 text-slate-900 dark:text-white" />
             )}
-            <span className="hidden sm:inline truncate max-w-[100px]">{profile.name || 'Cloud Synced'}</span>
+            <span className="hidden sm:inline truncate max-w-[100px]">
+              {profile.name || 'Synced'}
+            </span>
           </button>
         ) : (
           <button
@@ -72,7 +66,7 @@ export const TopHeader: React.FC = () => {
                 setIsAuthModalOpen(true);
               }
             }}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 text-slate-800 dark:text-white border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs font-bold shadow-sm transition-all active:scale-95"
+            className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-900 dark:bg-white text-white dark:text-black hover:bg-slate-800 dark:hover:bg-neutral-200 text-xs font-bold shadow-sm transition-all active:scale-95"
             title="Sign in with Google"
           >
             <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
@@ -97,14 +91,14 @@ export const TopHeader: React.FC = () => {
           </button>
         )}
 
-        {/* Theme Selector Toggle */}
-        <div className="flex items-center bg-slate-100 dark:bg-slate-800 amoled:bg-amoled-muted p-1 rounded-xl gap-0.5 border border-slate-200/50 dark:border-slate-700/50">
+        {/* Theme Toggle */}
+        <div className="flex items-center bg-slate-100 dark:bg-white/10 p-1 rounded-full border border-slate-200/80 dark:border-white/15 backdrop-blur-md">
           <button
             onClick={() => setTheme('light')}
-            className={`p-1.5 rounded-lg transition-colors ${
+            className={`p-1.5 rounded-full transition-colors ${
               settings.theme === 'light'
-                ? 'bg-white text-amber-500 shadow-sm'
-                : 'text-slate-400 hover:text-slate-600'
+                ? 'bg-white text-slate-900 shadow-sm'
+                : 'text-slate-500 dark:text-neutral-400 hover:text-white'
             }`}
             title="Light Theme"
           >
@@ -112,10 +106,10 @@ export const TopHeader: React.FC = () => {
           </button>
           <button
             onClick={() => setTheme('dark')}
-            className={`p-1.5 rounded-lg transition-colors ${
+            className={`p-1.5 rounded-full transition-colors ${
               settings.theme === 'dark'
-                ? 'bg-slate-900 text-indigo-400 shadow-sm'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-white text-black shadow-sm'
+                : 'text-slate-500 dark:text-neutral-400 hover:text-white'
             }`}
             title="Dark Theme"
           >
@@ -123,40 +117,40 @@ export const TopHeader: React.FC = () => {
           </button>
         </div>
 
-        {/* Notification Bell Dropdown */}
+        {/* Notifications Dropdown */}
         <div className="relative">
           <button
             onClick={() => setShowNotifications(!showNotifications)}
-            className="relative p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            className="relative p-2.5 rounded-full text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
           >
             <Bell className="w-5 h-5" />
             {unreadNotificationCount > 0 && (
-              <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-slate-900" />
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500 dark:bg-white ring-2 ring-white dark:ring-black" />
             )}
           </button>
 
           {showNotifications && (
-            <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-slate-900 amoled:bg-amoled-card border border-slate-200 dark:border-slate-800 amoled:border-amoled-border rounded-2xl shadow-xl z-50 p-4">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+            <div className="absolute right-0 mt-3 w-80 bg-white/95 dark:bg-[rgba(18,18,18,0.9)] backdrop-blur-2xl border border-slate-200 dark:border-white/15 rounded-3xl shadow-2xl z-50 p-5">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-200/80 dark:border-white/10">
                 <h4 className="font-bold text-sm text-slate-900 dark:text-white">Notifications</h4>
                 <button
                   onClick={() => {
                     markNotificationsAsRead();
                     setShowNotifications(false);
                   }}
-                  className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1 font-medium"
+                  className="text-xs text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white flex items-center gap-1 font-semibold"
                 >
                   <Check className="w-3.5 h-3.5" /> Mark read
                 </button>
               </div>
-              <div className="max-h-64 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800/60 mt-2">
+              <div className="max-h-64 overflow-y-auto divide-y divide-slate-100 dark:divide-white/10 mt-2">
                 {notifications.length === 0 ? (
-                  <p className="text-xs text-slate-400 text-center py-4">No notifications</p>
+                  <p className="text-xs text-slate-500 dark:text-neutral-400 text-center py-5">No notifications</p>
                 ) : (
                   notifications.map((n) => (
-                    <div key={n.id} className="py-2.5 text-xs">
-                      <p className="font-semibold text-slate-800 dark:text-slate-200">{n.title}</p>
-                      <p className="text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">{n.body}</p>
+                    <div key={n.id} className="py-3 text-xs">
+                      <p className="font-bold text-slate-900 dark:text-white">{n.title}</p>
+                      <p className="text-slate-500 dark:text-neutral-400 mt-0.5 leading-relaxed">{n.body}</p>
                     </div>
                   ))
                 )}
@@ -168,7 +162,7 @@ export const TopHeader: React.FC = () => {
         {/* Quick Add Button */}
         <button
           onClick={() => toggleQuickAdd(true)}
-          className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-md shadow-indigo-500/20 active:scale-95 transition-all"
+          className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-slate-900 dark:bg-white hover:bg-slate-800 dark:hover:bg-neutral-200 text-white dark:text-black text-xs font-extrabold shadow-md active:scale-95 transition-all"
         >
           <Plus className="w-4 h-4" /> Quick Add
         </button>

@@ -8,40 +8,49 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: {
-          DEFAULT: '#4F46E5',
-          50: '#EEF2FF',
-          100: '#E0E7FF',
-          200: '#C7D2FE',
-          300: '#A5B4FC',
-          400: '#818CF8',
-          500: '#6366F1',
-          600: '#4F46E5',
-          700: '#4338CA',
-          800: '#3730A3',
-          900: '#312E81',
+        background: {
+          DEFAULT: '#050505',
+          secondary: '#0D0D0D',
+          tertiary: '#141414',
         },
-        emerald: {
-          DEFAULT: '#10B981',
-          50: '#ECFDF5',
-          500: '#10B981',
-          600: '#059669',
+        card: {
+          DEFAULT: 'rgba(20, 20, 20, 0.55)',
+          hover: 'rgba(35, 35, 35, 0.65)',
         },
-        amoled: {
-          bg: '#000000',
-          card: '#0D0D0D',
-          border: '#1F1F1F',
-          muted: '#1A1A1A'
-        }
+        glass: {
+          DEFAULT: 'rgba(255, 255, 255, 0.05)',
+          border: 'rgba(255, 255, 255, 0.12)',
+        },
+        border: {
+          DEFAULT: '#262626',
+          light: '#3D3D3D',
+        },
+        text: {
+          primary: '#FFFFFF',
+          secondary: '#CFCFCF',
+          muted: '#9A9A9A',
+          disabled: '#666666',
+        },
       },
       fontFamily: {
         sans: ['Inter', 'sans-serif'],
       },
       boxShadow: {
-        'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.07)',
-        'glass-dark': '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
-      }
+        'sm': '0 2px 8px rgba(255, 255, 255, 0.04)',
+        'md': '0 8px 30px rgba(255, 255, 255, 0.05)',
+        'lg': '0 15px 60px rgba(255, 255, 255, 0.08)',
+        'glow': '0 0 25px rgba(255, 255, 255, 0.15)',
+        'glow-lg': '0 0 40px rgba(255, 255, 255, 0.25)',
+      },
+      backdropBlur: {
+        'glass': '18px',
+        'heavy': '30px',
+      },
+      borderRadius: {
+        '3xl': '24px',
+        '4xl': '32px',
+      },
     },
   },
   plugins: [],
-}
+};

@@ -1,4 +1,5 @@
 import React from 'react';
+import { cn } from '../../utils/cn';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
@@ -15,25 +16,31 @@ export const Button: React.FC<ButtonProps> = ({
   className = '',
   ...props
 }) => {
-  const baseStyles = 'inline-flex items-center justify-center font-medium rounded-xl transition-all duration-200 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]';
-  
+  const baseStyles =
+    'inline-flex items-center justify-center font-bold rounded-full transition-all duration-300 ease-out focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.97]';
+
   const sizeStyles = {
-    sm: 'px-3 py-1.5 text-xs gap-1.5',
-    md: 'px-4 py-2 text-sm gap-2',
-    lg: 'px-6 py-3 text-base gap-2.5',
+    sm: 'px-4 py-1.5 text-xs gap-1.5',
+    md: 'px-5 py-2.5 text-xs gap-2',
+    lg: 'px-7 py-3.5 text-sm gap-2.5',
   };
 
   const variantStyles = {
-    primary: 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-md shadow-indigo-500/20 dark:shadow-none',
-    secondary: 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-md shadow-emerald-500/20',
-    outline: 'border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/60',
-    ghost: 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white',
-    danger: 'bg-red-600 text-white hover:bg-red-700 shadow-md shadow-red-500/20',
+    primary:
+      'bg-white text-black hover:bg-neutral-200 shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:shadow-[0_0_30px_rgba(255,255,255,0.35)]',
+    secondary:
+      'bg-white/10 text-white hover:bg-white/20 border border-white/15 backdrop-blur-md hover:border-white/30',
+    outline:
+      'border border-slate-300 dark:border-white/20 text-slate-800 dark:text-white hover:bg-black/5 dark:hover:bg-white/10 backdrop-blur-sm',
+    ghost:
+      'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10',
+    danger:
+      'bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 hover:bg-red-500/20',
   };
 
   return (
     <button
-      className={`${baseStyles} ${sizeStyles[size]} ${variantStyles[variant]} ${className}`}
+      className={cn(baseStyles, sizeStyles[size], variantStyles[variant], className)}
       {...props}
     >
       {icon && <span className="shrink-0">{icon}</span>}

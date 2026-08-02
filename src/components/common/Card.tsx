@@ -1,4 +1,5 @@
 import React from 'react';
+import { cn } from '../../utils/cn';
 
 interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
@@ -14,9 +15,12 @@ export const Card: React.FC<CardProps> = ({
 }) => {
   return (
     <div
-      className={`bg-white dark:bg-slate-900 amoled:bg-amoled-card border border-slate-200/80 dark:border-slate-800 amoled:border-amoled-border rounded-2xl p-5 ${
-        hoverEffect ? 'hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200' : ''
-      } ${className}`}
+      className={cn(
+        'glass-card rounded-3xl p-6 transition-all duration-300 ease-out',
+        hoverEffect &&
+          'hover:-translate-y-1 hover:border-black/20 dark:hover:border-white/25 dark:hover:shadow-[0_12px_40px_rgba(255,255,255,0.08)]',
+        className
+      )}
       {...props}
     >
       {children}

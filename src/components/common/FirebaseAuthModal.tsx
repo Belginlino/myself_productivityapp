@@ -165,7 +165,7 @@ export const FirebaseAuthModal: React.FC<FirebaseAuthModalProps> = ({ isOpen, on
               Firebase Cloud Sync
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Sign in to sync your tasks, habits, and notes across all your devices.
+              Sign in to sync your tasks, daily routines, and streaks across all your devices.
             </p>
           </div>
         </div>

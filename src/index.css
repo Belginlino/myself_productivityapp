@@ -4,28 +4,38 @@
 
 @layer base {
   :root {
-    --bg-primary: #F8FAFC;
-    --bg-card: #FFFFFF;
-    --border-color: #E2E8F0;
-    --text-main: #0F172A;
-    --text-muted: #64748B;
+    --bg-primary: #FFFFFF;
+    --bg-card: rgba(255, 255, 255, 0.85);
+    --border-color: rgba(0, 0, 0, 0.1);
+    --text-main: #050505;
+    --text-muted: #666666;
   }
 
   .dark {
-    --bg-primary: #090D16;
-    --bg-card: #111827;
-    --border-color: #1F2937;
-    --text-main: #F9FAFB;
-    --text-muted: #9CA3AF;
-  }
-
-  .amoled {
-    --bg-primary: #000000;
-    --bg-card: #0D0D0D;
-    --border-color: #1F1F1F;
+    --bg-primary: #050505;
+    --bg-card: rgba(20, 20, 20, 0.55);
+    --border-color: rgba(255, 255, 255, 0.12);
     --text-main: #FFFFFF;
-    --text-muted: #737373;
+    --text-muted: #9A9A9A;
   }
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: var(--bg-primary);
+  color: var(--text-main);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Smoky luxury gradient overlay */
+.dark body {
+  background-image: 
+    radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.05) 0%, transparent 60%),
+    radial-gradient(circle at 100% 50%, rgba(255, 255, 255, 0.02) 0%, transparent 50%),
+    radial-gradient(circle at 0% 100%, rgba(255, 255, 255, 0.03) 0%, transparent 50%);
+  background-attachment: fixed;
 }
 
 /* Custom Scrollbars */
@@ -39,187 +49,88 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(156, 163, 175, 0.4);
+  background: rgba(255, 255, 255, 0.15);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(156, 163, 175, 0.7);
+  background: rgba(255, 255, 255, 0.3);
 }
 
-/* Custom Utility Classes */
+/* Premium Glass Utilities */
 .glass-panel {
-  background: rgba(255, 255, 255, 0.75);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(226, 232, 240, 0.8);
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .dark .glass-panel {
-  background: rgba(17, 24, 39, 0.75);
+  background: rgba(20, 20, 20, 0.55);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dark .glass-card {
+  background: rgba(20, 20, 20, 0.55);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.dark .glass-card:hover {
+  background: rgba(35, 35, 35, 0.65);
+  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 12px 40px rgba(255, 255, 255, 0.06);
+}
+
+/* Pill Glass Button */
+.glass-pill {
+  background: rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(31, 41, 55, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  transition: all 0.3s ease;
 }
 
-.amoled .glass-panel {
-  background: rgba(13, 13, 13, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(31, 31, 31, 0.9);
+.glass-pill:hover {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.12);
 }
 
-/* FullCalendar styling & responsive fixes */
-.fc {
-  font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
-  --fc-border-color: var(--border-color) !important;
-  --fc-page-bg-color: transparent !important;
-  --fc-neutral-bg-color: rgba(31, 41, 55, 0.3) !important;
-  --fc-list-event-hover-bg-color: rgba(79, 70, 229, 0.1) !important;
+/* Glow Utilities */
+.white-glow {
+  box-shadow: 0 0 25px rgba(255, 255, 255, 0.2);
 }
 
-/* Fix header toolbar layout on all screen sizes */
-.fc .fc-toolbar {
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 0.75rem !important;
-  align-items: center !important;
-  justify-content: space-between !important;
-  margin-bottom: 1.25rem !important;
+.white-glow-lg {
+  box-shadow: 0 0 45px rgba(255, 255, 255, 0.3);
 }
 
-@media (min-width: 640px) {
-  .fc .fc-toolbar {
-    flex-direction: row !important;
+/* Fade animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-.fc .fc-toolbar-chunk {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 0.375rem !important;
-  flex-wrap: wrap !important;
-}
-
-.fc .fc-toolbar-title {
-  font-size: 1.25rem !important;
-  font-weight: 700 !important;
-  color: var(--text-main) !important;
-  text-align: center !important;
-}
-
-/* Fix buttons overlapping and size */
-.fc .fc-button {
-  padding: 0.4rem 0.75rem !important;
-  font-size: 0.875rem !important;
-  font-weight: 500 !important;
-  line-height: 1.25rem !important;
-  border-radius: 0.375rem !important;
-  box-shadow: none !important;
-  outline: none !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  transition: all 0.15s ease-in-out !important;
-}
-
-.fc .fc-button-primary {
-  background-color: #4F46E5 !important;
-  border-color: #4F46E5 !important;
-  color: #ffffff !important;
-}
-
-.fc .fc-button-primary:hover {
-  background-color: #4338CA !important;
-  border-color: #4338CA !important;
-}
-
-.fc .fc-button-primary:disabled {
-  opacity: 0.6 !important;
-  background-color: #4F46E5 !important;
-  border-color: #4F46E5 !important;
-}
-
-.fc .fc-button-primary:not(:disabled).fc-button-active,
-.fc .fc-button-primary:not(:disabled):active {
-  background-color: #3730A3 !important;
-  border-color: #3730A3 !important;
-}
-
-/* Remove default negative margins in fc-button-group causing overlap */
-.fc .fc-button-group {
-  display: inline-flex !important;
-  gap: 0.25rem !important;
-}
-
-.fc .fc-button-group > .fc-button {
-  margin: 0 !important;
-  border-radius: 0.375rem !important;
-  flex: none !important;
-}
-
-.fc .fc-today-button {
-  margin-left: 0.25rem !important;
-}
-
-/* Fix header column cells (Sun, Mon, Tue...) overlapping */
-.fc .fc-col-header {
-  width: 100% !important;
-}
-
-.fc .fc-col-header-cell {
-  padding: 0.5rem 0.125rem !important;
-  background-color: transparent !important;
-  border-color: var(--border-color) !important;
-}
-
-.fc .fc-col-header-cell-cushion {
-  display: block !important;
-  padding: 0 !important;
-  font-size: 0.75rem !important;
-  font-weight: 600 !important;
-  text-transform: uppercase !important;
-  color: var(--text-muted) !important;
-  text-decoration: none !important;
-  text-align: center !important;
-  white-space: nowrap !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-}
-
-/* Dark mode cell background & borders */
-.dark .fc, .amoled .fc {
-  --fc-page-bg-color: transparent;
-  --fc-neutral-bg-color: rgba(31, 41, 55, 0.5);
-  --fc-border-color: rgba(55, 65, 81, 0.5);
-  --fc-text-color: #F3F4F6;
-  --fc-button-text-color: #ffffff;
-}
-
-.fc .fc-daygrid-day {
-  transition: background-color 0.15s ease;
-}
-
-.fc .fc-daygrid-day-number {
-  font-size: 0.875rem !important;
-  font-weight: 500 !important;
-  color: var(--text-main) !important;
-  padding: 0.375rem 0.5rem !important;
-  text-decoration: none !important;
-}
-
-.fc .fc-day-today {
-  background-color: rgba(79, 70, 229, 0.08) !important;
-}
-
-.dark .fc .fc-day-today, .amoled .fc .fc-day-today {
-  background-color: rgba(79, 70, 229, 0.18) !important;
-}
-
-.fc .fc-daygrid-event {
-  border-radius: 0.25rem !important;
-  padding: 2px 4px !important;
-  font-size: 0.75rem !important;
-  font-weight: 500 !important;
+.animate-fadeIn {
+  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }

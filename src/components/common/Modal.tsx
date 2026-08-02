@@ -49,27 +49,29 @@ export const Modal: React.FC<ModalProps> = ({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm"
+            className="fixed inset-0 bg-black/75 backdrop-blur-md"
           />
 
           {/* Modal Box */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+            initial={{ opacity: 0, scale: 0.95, y: 15 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 10 }}
-            transition={{ duration: 0.2 }}
-            className={`relative w-full ${maxWidthClasses[maxWidth]} bg-white dark:bg-slate-900 amoled:bg-amoled-card border border-slate-200 dark:border-slate-800 amoled:border-amoled-border rounded-2xl shadow-2xl p-6 z-10`}
+            exit={{ opacity: 0, scale: 0.95, y: 15 }}
+            transition={{ duration: 0.25, ease: 'easeOut' }}
+            className={`relative w-full ${maxWidthClasses[maxWidth]} bg-white/95 dark:bg-[rgba(18,18,18,0.85)] backdrop-blur-2xl border border-black/10 dark:border-white/15 rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.5)] p-6 sm:p-8 z-10`}
           >
-            <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800/80">
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white">{title}</h3>
+            <div className="flex items-center justify-between pb-4 border-b border-black/5 dark:border-white/10">
+              <h3 className="text-lg font-extrabold tracking-tight text-slate-900 dark:text-white">
+                {title}
+              </h3>
               <button
                 onClick={onClose}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                className="p-2 rounded-full text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="pt-4">{children}</div>
+            <div className="pt-5">{children}</div>
           </motion.div>
         </div>
       )}

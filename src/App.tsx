@@ -1,33 +1,32 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Sidebar } from './components/layout/Sidebar';
 import { BottomNav } from './components/layout/BottomNav';
 import { TopHeader } from './components/layout/TopHeader';
 import { QuickAddModal } from './components/layout/QuickAddModal';
 
-import { DashboardView } from './features/dashboard/DashboardView';
+import { HomeView } from './features/home/HomeView';
 import { TaskView } from './features/tasks/TaskView';
 import { RoutineView } from './features/routines/RoutineView';
-import { GoalProjectView } from './features/goals/GoalProjectView';
-import { CalendarView } from './features/calendar/CalendarView';
-import { PomodoroView } from './features/pomodoro/PomodoroView';
-import { SettingsView } from './features/settings/SettingsView';
 
 import { useAppStore } from './store/useAppStore';
+import { useTaskStore } from './store/useTaskStore';
+import { useRoutineStore } from './store/useRoutineStore';
 import { initAuthListener } from './firebase/authService';
 import { pullAllDataFromCloud, initAutoStoreSync } from './firebase/syncService';
 
 export const App: React.FC = () => {
   const { activeTab, settings } = useAppStore();
+  const { addTask } = useTaskStore();
+  const { addRoutine, recalculateStreaks } = useRoutineStore();
 
   useEffect(() => {
     // Synchronize initial theme class on root element
     const root = document.documentElement;
-    root.classList.remove('light', 'dark', 'amoled');
-    if (settings.theme === 'amoled') {
-      root.classList.add('dark', 'amoled');
-    } else {
-      root.classList.add(settings.theme || 'dark');
-    }
+    root.classList.remove('light', 'dark');
+    root.classList.add(settings.theme || 'dark');
+
+    // Recalculate routine streaks on app load
+    recalculateStreaks();
 
     let unsubscribeAutoSync: (() => void) | null = null;
 
@@ -50,27 +49,37 @@ export const App: React.FC = () => {
 
   const renderActiveView = () => {
     switch (activeTab) {
-      case 'dashboard':
-        return <DashboardView />;
+      case 'home':
+        return (
+          <HomeView
+            onOpenAddTask={() => {
+              useAppStore.getState().setActiveTab('tasks');
+            }}
+            onOpenAddRoutine={() => {
+              useAppStore.getState().setActiveTab('routines');
+            }}
+          />
+        );
       case 'tasks':
         return <TaskView />;
       case 'routines':
         return <RoutineView />;
-      case 'goals':
-        return <GoalProjectView />;
-      case 'calendar':
-        return <CalendarView />;
-      case 'pomodoro':
-        return <PomodoroView />;
-      case 'settings':
-        return <SettingsView />;
       default:
-        return <DashboardView />;
+        return (
+          <HomeView
+            onOpenAddTask={() => {
+              useAppStore.getState().setActiveTab('tasks');
+            }}
+            onOpenAddRoutine={() => {
+              useAppStore.getState().setActiveTab('routines');
+            }}
+          />
+        );
     }
   };
 
   return (
-    <div className="min-h-screen flex bg-slate-50 dark:bg-slate-950 amoled:bg-black text-slate-900 dark:text-slate-100 transition-colors duration-200">
+    <div className="min-h-screen flex bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-200">
       {/* Desktop Sidebar */}
       <Sidebar />
 
@@ -78,7 +87,7 @@ export const App: React.FC = () => {
       <div className="flex-1 flex flex-col min-w-0">
         <TopHeader />
 
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 pb-28 lg:pb-8 max-w-7xl w-full mx-auto">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 pb-28 lg:pb-8 max-w-6xl w-full mx-auto">
           {renderActiveView()}
         </main>
       </div>
@@ -86,7 +95,7 @@ export const App: React.FC = () => {
       {/* Mobile Bottom Bar Navigation */}
       <BottomNav />
 
-      {/* Global Modals */}
+      {/* Global Quick Add Modal */}
       <QuickAddModal />
     </div>
   );
