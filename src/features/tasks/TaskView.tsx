@@ -421,20 +421,6 @@ export const TaskView: React.FC = () => {
             />
           </div>
 
-          {/* Description */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-neutral-300 mb-2">
-              Description (Optional)
-            </label>
-            <textarea
-              rows={2}
-              placeholder="Add additional text details..."
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:border-slate-400 dark:focus:border-white/30"
-            />
-          </div>
-
           {/* Due Date & Time */}
           <div className="grid grid-cols-2 gap-3">
             <div>
