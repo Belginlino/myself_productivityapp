@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Lock, KeyRound, AlertCircle, Delete } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 
@@ -36,8 +37,8 @@ export const PinLockScreen: React.FC = () => {
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-[100] bg-slate-950/95 backdrop-blur-3xl text-white flex flex-col items-center justify-center p-6 animate-fadeIn select-none">
+  return createPortal(
+    <div className="fixed inset-0 z-[99999] bg-slate-950/95 backdrop-blur-3xl text-white flex flex-col items-center justify-center p-6 animate-fadeIn select-none">
       <div className="w-full max-w-sm flex flex-col items-center text-center space-y-6">
         {/* App Icon / Lock Icon */}
         <div className="relative">
@@ -104,6 +105,7 @@ export const PinLockScreen: React.FC = () => {
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

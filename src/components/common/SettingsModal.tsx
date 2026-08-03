@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   X,
   KeyRound,
@@ -19,6 +20,8 @@ import {
   LogOut,
   Check,
   Laptop,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 import { PreferredLoginMethod } from '../../types';
@@ -46,6 +49,7 @@ export const SettingsModal: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState<'login' | 'appearance' | 'notifications' | 'account'>('login');
   const [pinInput, setPinInput] = useState(settings.pinCode || '');
+  const [showPin, setShowPin] = useState(false);
   const [pinError, setPinError] = useState('');
   const [pinSuccessMsg, setPinSuccessMsg] = useState('');
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -140,9 +144,9 @@ export const SettingsModal: React.FC = () => {
     setStatusMsg({ type: 'success', text: 'Logged out successfully.' });
   };
 
-  return (
+  return createPortal(
     <>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
         <div className="relative w-full max-w-2xl bg-white/95 dark:bg-[rgba(18,18,18,0.9)] backdrop-blur-2xl border border-slate-200 dark:border-white/15 rounded-3xl shadow-[0_25px_70px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col max-h-[90vh]">
           {/* Header */}
           <div className="p-6 border-b border-slate-200/80 dark:border-white/10 flex items-center justify-between">
@@ -426,14 +430,28 @@ export const SettingsModal: React.FC = () => {
                       {settings.pinLockEnabled ? 'Update 4-Digit Passcode' : 'Set New 4-Digit Passcode'}
                     </label>
                     <div className="flex items-center gap-3">
-                      <input
-                        type="password"
-                        maxLength={4}
-                        placeholder="••••"
-                        value={pinInput}
-                        onChange={(e) => setPinInput(e.target.value.replace(/\D/g, ''))}
-                        className="w-32 px-4 py-2 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-center text-sm font-mono text-slate-900 dark:text-white tracking-widest focus:outline-none focus:border-slate-400 dark:focus:border-white/30"
-                      />
+                      <div className="relative flex items-center">
+                        <input
+                          type={showPin ? 'text' : 'password'}
+                          maxLength={4}
+                          placeholder="••••"
+                          value={pinInput}
+                          onChange={(e) => setPinInput(e.target.value.replace(/\D/g, ''))}
+                          className="w-32 pl-4 pr-9 py-2 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-center text-sm font-mono text-slate-900 dark:text-white tracking-widest focus:outline-none focus:border-slate-400 dark:focus:border-white/30"
+                        />
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setShowPin((prev) => !prev);
+                          }}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-lg text-slate-400 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/10 transition-colors focus:outline-none z-10"
+                          title={showPin ? 'Hide Passcode' : 'Show Passcode'}
+                        >
+                          {showPin ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                        </button>
+                      </div>
                       <button
                         type="submit"
                         className="px-4 py-2 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-black font-bold text-xs hover:bg-slate-800 dark:hover:bg-neutral-200 transition-colors shadow-sm"
@@ -684,6 +702,7 @@ export const SettingsModal: React.FC = () => {
         onClose={() => setIsAuthModalOpen(false)}
         initialTab={authModalTab}
       />
-    </>
+    </>,
+    document.body
   );
 };

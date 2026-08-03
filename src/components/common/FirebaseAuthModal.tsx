@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Cloud,
   LogOut,
@@ -167,9 +168,10 @@ export const FirebaseAuthModal: React.FC<FirebaseAuthModalProps> = ({
     });
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-fadeIn">
-      <div className="relative w-full max-w-lg bg-white/95 dark:bg-[rgba(18,18,18,0.85)] backdrop-blur-2xl border border-black/10 dark:border-white/15 rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.5)] overflow-hidden p-6 sm:p-8">
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] overflow-y-auto bg-black/75 backdrop-blur-md animate-fadeIn">
+      <div className="flex min-h-full items-center justify-center p-4 sm:p-6">
+        <div className="relative w-full max-w-lg my-auto bg-white/95 dark:bg-[rgba(18,18,18,0.85)] backdrop-blur-2xl border border-black/10 dark:border-white/15 rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.5)] p-5 sm:p-7">
         {/* Close Button */}
         <button
           onClick={onClose}
@@ -332,8 +334,8 @@ export const FirebaseAuthModal: React.FC<FirebaseAuthModalProps> = ({
                       Forgot password?
                     </button>
                   </div>
-                  <div className="relative">
-                    <Lock className="w-4 h-4 absolute left-3.5 top-3.5 text-slate-400 dark:text-neutral-400" />
+                  <div className="relative flex items-center">
+                    <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-neutral-400 pointer-events-none" />
                     <input
                       type={showPassword ? 'text' : 'password'}
                       required
@@ -344,8 +346,14 @@ export const FirebaseAuthModal: React.FC<FirebaseAuthModalProps> = ({
                     />
                     <button
                       type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3.5 top-3 text-slate-400 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white transition-colors"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setShowPassword((prev) => !prev);
+                      }}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-xl text-slate-400 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/10 transition-colors focus:outline-none flex items-center justify-center cursor-pointer select-none z-10"
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      title={showPassword ? 'Hide password' : 'Show password'}
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -362,8 +370,8 @@ export const FirebaseAuthModal: React.FC<FirebaseAuthModalProps> = ({
                   <label className="block text-xs font-semibold text-slate-700 dark:text-neutral-300 mb-1.5">
                     Your Name
                   </label>
-                  <div className="relative">
-                    <User className="w-4 h-4 absolute left-3.5 top-3.5 text-slate-400 dark:text-neutral-400" />
+                  <div className="relative flex items-center">
+                    <User className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-neutral-400 pointer-events-none" />
                     <input
                       type="text"
                       placeholder="John Doe"
@@ -378,8 +386,8 @@ export const FirebaseAuthModal: React.FC<FirebaseAuthModalProps> = ({
                   <label className="block text-xs font-semibold text-slate-700 dark:text-neutral-300 mb-1.5">
                     Email Address
                   </label>
-                  <div className="relative">
-                    <Mail className="w-4 h-4 absolute left-3.5 top-3.5 text-slate-400 dark:text-neutral-400" />
+                  <div className="relative flex items-center">
+                    <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-neutral-400 pointer-events-none" />
                     <input
                       type="email"
                       required
@@ -395,8 +403,8 @@ export const FirebaseAuthModal: React.FC<FirebaseAuthModalProps> = ({
                   <label className="block text-xs font-semibold text-slate-700 dark:text-neutral-300 mb-1.5">
                     Password
                   </label>
-                  <div className="relative">
-                    <Lock className="w-4 h-4 absolute left-3.5 top-3.5 text-slate-400 dark:text-neutral-400" />
+                  <div className="relative flex items-center">
+                    <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-neutral-400 pointer-events-none" />
                     <input
                       type={showPassword ? 'text' : 'password'}
                       required
@@ -408,8 +416,14 @@ export const FirebaseAuthModal: React.FC<FirebaseAuthModalProps> = ({
                     />
                     <button
                       type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3.5 top-3 text-slate-400 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white transition-colors"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setShowPassword((prev) => !prev);
+                      }}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-xl text-slate-400 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/10 transition-colors focus:outline-none flex items-center justify-center cursor-pointer select-none z-10"
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      title={showPassword ? 'Hide password' : 'Show password'}
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -500,5 +514,7 @@ export const FirebaseAuthModal: React.FC<FirebaseAuthModalProps> = ({
         )}
       </div>
     </div>
-  );
+  </div>,
+  document.body
+);
 };
