@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import { Modal } from '../common/Modal';
 import { Button } from '../common/Button';
 import { useAppStore } from '../../store/useAppStore';
@@ -66,7 +67,9 @@ export const QuickAddModal: React.FC = () => {
     if (!title.trim() && !recordedVoiceUrl) return;
 
     if (itemType === 'task') {
-      const taskTitle = title.trim() || `Voice Note ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+      const taskTitle =
+        title.trim() ||
+        `Voice Note ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
       addTask({
         title: taskTitle,
         dueDate: dueDate || undefined,
@@ -107,46 +110,63 @@ export const QuickAddModal: React.FC = () => {
         if (isRecording) handleCancelRecording();
         toggleQuickAdd(false);
       }}
-      title="Quick Add"
+      title="Quick Add Item"
     >
       <form onSubmit={handleSave} className="space-y-5">
-        {/* Item Type Selector */}
-        <div className="grid grid-cols-2 gap-2 p-1.5 bg-slate-100 dark:bg-white/10 rounded-full border border-slate-200/80 dark:border-white/10 backdrop-blur-md">
+        {/* Item Type Pill Switcher */}
+        <div className="relative flex items-center p-1.5 bg-slate-100/80 dark:bg-white/[0.04] rounded-2xl border border-slate-200/80 dark:border-white/10">
           <button
             type="button"
             onClick={() => setItemType('task')}
-            className={`flex items-center justify-center gap-2 py-2.5 rounded-full font-bold text-xs transition-all ${
+            className={`relative flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl font-extrabold text-xs transition-all ${
               itemType === 'task'
-                ? 'bg-slate-900 text-white dark:bg-white dark:text-black shadow-md'
-                : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white'
+                ? 'text-slate-900 dark:text-white'
+                : 'text-slate-500 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
-            <CheckSquare className="w-4 h-4" /> Task
+            {itemType === 'task' && (
+              <motion.div
+                layoutId="quickAddType"
+                className="absolute inset-0 bg-white dark:bg-white/10 rounded-xl shadow-sm border border-slate-200 dark:border-white/15"
+                transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+              />
+            )}
+            <CheckSquare className="relative z-10 w-4 h-4 text-indigo-500" />
+            <span className="relative z-10">Task</span>
           </button>
+
           <button
             type="button"
             onClick={() => setItemType('routine')}
-            className={`flex items-center justify-center gap-2 py-2.5 rounded-full font-bold text-xs transition-all ${
+            className={`relative flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl font-extrabold text-xs transition-all ${
               itemType === 'routine'
-                ? 'bg-slate-900 text-white dark:bg-white dark:text-black shadow-md'
-                : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white'
+                ? 'text-slate-900 dark:text-white'
+                : 'text-slate-500 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
-            <Clock className="w-4 h-4" /> Routine
+            {itemType === 'routine' && (
+              <motion.div
+                layoutId="quickAddType"
+                className="absolute inset-0 bg-white dark:bg-white/10 rounded-xl shadow-sm border border-slate-200 dark:border-white/15"
+                transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+              />
+            )}
+            <Clock className="relative z-10 w-4 h-4 text-emerald-500" />
+            <span className="relative z-10">Routine</span>
           </button>
         </div>
 
-        {/* WhatsApp Voice Note Recording section for Tasks */}
+        {/* Voice Note Recording section for Tasks */}
         {itemType === 'task' && (
-          <div className="p-4 rounded-3xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-3">
+          <div className="p-4 rounded-3xl bg-slate-100/90 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <Mic className="w-4 h-4 text-slate-900 dark:text-white" /> WhatsApp Voice Message
+              <span className="text-xs font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                <Mic className="w-4 h-4 text-indigo-500" /> WhatsApp Voice Message
               </span>
 
               {isRecording && (
-                <span className="text-xs font-mono font-bold text-red-500 animate-pulse flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-red-500" />
+                <span className="text-xs font-mono font-black text-red-500 animate-pulse flex items-center gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-red-500" />
                   {formatRecordingTime(recordingTime)}
                 </span>
               )}
@@ -157,14 +177,14 @@ export const QuickAddModal: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleStopRecording}
-                  className="flex-1 py-2.5 rounded-full bg-red-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md hover:bg-red-600 transition-all"
+                  className="flex-1 py-2.5 rounded-2xl bg-red-500 text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-md hover:bg-red-600 transition-all"
                 >
                   <Square className="w-4 h-4 fill-white" /> Stop & Attach Audio
                 </button>
                 <button
                   type="button"
                   onClick={handleCancelRecording}
-                  className="p-2.5 rounded-full text-slate-400 hover:text-red-500 transition-colors"
+                  className="p-2.5 rounded-2xl text-slate-400 hover:text-red-500 transition-colors"
                   title="Discard recording"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -172,7 +192,9 @@ export const QuickAddModal: React.FC = () => {
               </div>
             ) : recordedVoiceUrl ? (
               <div className="space-y-2">
-                <p className="text-[11px] text-slate-500 dark:text-neutral-400">Recorded Voice Message:</p>
+                <p className="text-[11px] font-semibold text-slate-500 dark:text-neutral-400">
+                  Recorded Audio Note:
+                </p>
                 <VoiceNotePlayer
                   audioUrl={recordedVoiceUrl}
                   duration={recordedVoiceDuration}
@@ -186,7 +208,7 @@ export const QuickAddModal: React.FC = () => {
               <button
                 type="button"
                 onClick={handleStartRecording}
-                className="w-full py-3 rounded-full bg-slate-900 dark:bg-white text-white dark:text-black font-bold text-xs flex items-center justify-center gap-2 shadow-md hover:scale-[1.01] active:scale-98 transition-all"
+                className="w-full py-3 rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-slate-950 font-extrabold text-xs flex items-center justify-center gap-2 shadow-md hover:scale-[1.01] active:scale-98 transition-all"
               >
                 <Mic className="w-4 h-4" /> Click to Record Voice Message
               </button>
@@ -209,18 +231,18 @@ export const QuickAddModal: React.FC = () => {
 
         {/* Title Input */}
         <div>
-          <label className="block text-xs font-semibold text-slate-700 dark:text-neutral-300 mb-2">
+          <label className="block text-xs font-extrabold text-slate-700 dark:text-slate-300 mb-2">
             {itemType === 'task' ? 'Task Title (Optional if voice recorded)' : 'Routine Title'}{' '}
-            {itemType === 'routine' && <span className="text-red-500 dark:text-white">*</span>}
+            {itemType === 'routine' && <span className="text-red-500">*</span>}
           </label>
 
           <input
             type="text"
             required={itemType === 'routine' && !recordedVoiceUrl}
-            placeholder={itemType === 'task' ? 'e.g., Internship report, Study Java' : 'e.g., Exercise & Stretch'}
+            placeholder={itemType === 'task' ? 'e.g., Complete project report' : 'e.g., Drink 2L water'}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:border-slate-400 dark:focus:border-white/30"
+            className="w-full px-4 py-3.5 rounded-2xl border border-slate-200/80 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-slate-400 dark:focus:border-white/30"
           />
         </div>
 
@@ -228,25 +250,25 @@ export const QuickAddModal: React.FC = () => {
         {itemType === 'task' && (
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-neutral-300 mb-2">
+              <label className="block text-xs font-extrabold text-slate-700 dark:text-slate-300 mb-2">
                 Due Date
               </label>
               <input
                 type="date"
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-sm text-slate-900 dark:text-white focus:outline-none"
+                className="w-full px-3.5 py-3 rounded-2xl border border-slate-200/80 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs font-semibold text-slate-900 dark:text-white focus:outline-none"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-neutral-300 mb-2">
+              <label className="block text-xs font-extrabold text-slate-700 dark:text-slate-300 mb-2">
                 Due Time
               </label>
               <input
                 type="time"
                 value={dueTime}
                 onChange={(e) => setDueTime(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-sm text-slate-900 dark:text-white focus:outline-none"
+                className="w-full px-3.5 py-3 rounded-2xl border border-slate-200/80 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs font-semibold text-slate-900 dark:text-white focus:outline-none"
               />
             </div>
           </div>
@@ -255,14 +277,14 @@ export const QuickAddModal: React.FC = () => {
         {/* Routine Specific Fields */}
         {itemType === 'routine' && (
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-neutral-300 mb-2">
+            <label className="block text-xs font-extrabold text-slate-700 dark:text-slate-300 mb-2">
               Scheduled Time
             </label>
             <input
               type="time"
               value={time}
               onChange={(e) => setTime(e.target.value)}
-              className="w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-sm text-slate-900 dark:text-white focus:outline-none"
+              className="w-full px-4 py-3.5 rounded-2xl border border-slate-200/80 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs font-semibold text-slate-900 dark:text-white focus:outline-none"
             />
           </div>
         )}

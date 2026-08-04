@@ -9,42 +9,41 @@ export default {
     extend: {
       colors: {
         background: {
-          DEFAULT: '#050505',
-          secondary: '#0D0D0D',
-          tertiary: '#141414',
+          DEFAULT: '#09090b',
+          secondary: '#121215',
+          tertiary: '#18181c',
         },
         card: {
-          DEFAULT: 'rgba(20, 20, 20, 0.55)',
-          hover: 'rgba(35, 35, 35, 0.65)',
+          DEFAULT: 'rgba(24, 24, 28, 0.65)',
+          hover: 'rgba(32, 32, 38, 0.75)',
         },
         glass: {
-          DEFAULT: 'rgba(255, 255, 255, 0.05)',
-          border: 'rgba(255, 255, 255, 0.12)',
+          DEFAULT: 'rgba(255, 255, 255, 0.04)',
+          border: 'rgba(255, 255, 255, 0.10)',
         },
-        border: {
-          DEFAULT: '#262626',
-          light: '#3D3D3D',
+        streak: {
+          from: '#f59e0b',
+          to: '#ea580c',
         },
-        text: {
-          primary: '#FFFFFF',
-          secondary: '#CFCFCF',
-          muted: '#9A9A9A',
-          disabled: '#666666',
+        completion: {
+          from: '#10b981',
+          to: '#14b8a6',
         },
       },
       fontFamily: {
-        sans: ['Inter', 'sans-serif'],
+        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
       },
       boxShadow: {
-        'sm': '0 2px 8px rgba(255, 255, 255, 0.04)',
-        'md': '0 8px 30px rgba(255, 255, 255, 0.05)',
-        'lg': '0 15px 60px rgba(255, 255, 255, 0.08)',
-        'glow': '0 0 25px rgba(255, 255, 255, 0.15)',
-        'glow-lg': '0 0 40px rgba(255, 255, 255, 0.25)',
+        'sm': '0 2px 8px rgba(0, 0, 0, 0.08)',
+        'md': '0 8px 30px rgba(0, 0, 0, 0.12)',
+        'lg': '0 15px 50px rgba(0, 0, 0, 0.22)',
+        'glow-amber': '0 0 30px rgba(245, 158, 11, 0.25)',
+        'glow-emerald': '0 0 30px rgba(16, 185, 129, 0.25)',
+        'glow-slate': '0 0 30px rgba(255, 255, 255, 0.12)',
       },
       backdropBlur: {
-        'glass': '18px',
-        'heavy': '30px',
+        'glass': '20px',
+        'heavy': '32px',
       },
       borderRadius: {
         '3xl': '24px',

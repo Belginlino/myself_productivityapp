@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { Play, Pause, Mic, Trash2 } from 'lucide-react';
 
 interface VoiceNotePlayerProps {
@@ -65,44 +66,63 @@ export const VoiceNotePlayer: React.FC<VoiceNotePlayerProps> = ({
 
   const progressPercent = totalDuration > 0 ? (currentTime / totalDuration) * 100 : 0;
 
+  // Waveform bars simulation
+  const waveformHeights = [40, 75, 50, 90, 60, 100, 45, 80, 55, 95, 70, 40];
+
   return (
     <div
       onClick={(e) => e.stopPropagation()}
-      className="inline-flex items-center gap-3 p-2.5 px-3.5 rounded-full bg-slate-100 dark:bg-white/10 border border-slate-200 dark:border-white/15 backdrop-blur-md max-w-xs sm:max-w-sm w-full my-1 shadow-sm"
+      className="inline-flex items-center gap-3 p-2.5 px-4 rounded-2xl bg-slate-100/90 dark:bg-white/[0.06] border border-slate-200/90 dark:border-white/15 backdrop-blur-xl max-w-xs sm:max-w-sm w-full my-1.5 shadow-sm hover:border-slate-300 dark:hover:border-white/25 transition-all"
     >
       {/* Play/Pause Button */}
-      <button
+      <motion.button
+        whileTap={{ scale: 0.9 }}
         type="button"
         onClick={togglePlay}
-        className="w-8 h-8 rounded-full bg-slate-900 dark:bg-white text-white dark:text-black flex items-center justify-center shrink-0 shadow-md hover:scale-105 active:scale-95 transition-all"
+        className="w-8 h-8 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-950 flex items-center justify-center shrink-0 shadow-md hover:scale-105 transition-all"
         title={isPlaying ? 'Pause voice message' : 'Play voice message'}
       >
         {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 ml-0.5" />}
-      </button>
+      </motion.button>
 
-      {/* Mic Icon & Waveform Progress */}
-      <div className="flex-1 min-w-0 space-y-1">
-        <div className="flex items-center justify-between text-[10px] font-mono font-bold text-slate-600 dark:text-neutral-300">
+      {/* Waveform & Time */}
+      <div className="flex-1 min-w-0 space-y-1.5">
+        <div className="flex items-center justify-between text-[10px] font-mono font-bold text-slate-600 dark:text-slate-300">
           <span className="flex items-center gap-1">
-            <Mic className="w-3 h-3 text-slate-900 dark:text-white" /> Voice Note
+            <Mic className="w-3 h-3 text-indigo-500 dark:text-indigo-400" /> Audio Note
           </span>
-          <span>
-            {isPlaying ? formatTime(currentTime) : formatTime(totalDuration)}
-          </span>
+          <span>{isPlaying ? formatTime(currentTime) : formatTime(totalDuration)}</span>
         </div>
 
-        {/* Progress Wavebar */}
-        <div className="relative w-full h-1.5 bg-slate-200 dark:bg-white/15 rounded-full overflow-hidden">
-          <div
-            className="h-full bg-slate-900 dark:bg-white rounded-full transition-all duration-200"
-            style={{ width: `${progressPercent}%` }}
-          />
+        {/* Animated Waveform Visualizer */}
+        <div className="flex items-center gap-1 h-3.5 px-0.5">
+          {waveformHeights.map((h, idx) => (
+            <motion.div
+              key={idx}
+              animate={{
+                scaleY: isPlaying ? [0.3, h / 100, 0.3] : 0.3,
+              }}
+              transition={{
+                duration: 0.6,
+                repeat: isPlaying ? Infinity : 0,
+                repeatType: 'reverse',
+                delay: idx * 0.05,
+              }}
+              className={`flex-1 rounded-full transition-colors ${
+                (idx / waveformHeights.length) * 100 <= progressPercent
+                  ? 'bg-indigo-600 dark:bg-indigo-400'
+                  : 'bg-slate-300 dark:bg-white/20'
+              }`}
+              style={{ height: '100%', transformOrigin: 'bottom' }}
+            />
+          ))}
         </div>
       </div>
 
-      {/* Delete Voice Note Option */}
+      {/* Delete Option */}
       {onDelete && (
-        <button
+        <motion.button
+          whileTap={{ scale: 0.9 }}
           type="button"
           onClick={(e) => {
             e.stopPropagation();
@@ -113,7 +133,7 @@ export const VoiceNotePlayer: React.FC<VoiceNotePlayerProps> = ({
           title="Delete voice message"
         >
           <Trash2 className="w-3.5 h-3.5" />
-        </button>
+        </motion.button>
       )}
     </div>
   );
