@@ -11,6 +11,7 @@ import {
   Circle,
   Sparkles,
   Zap,
+  Check,
 } from 'lucide-react';
 import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
@@ -311,9 +312,9 @@ export const HomeView: React.FC<HomeViewProps> = ({ onOpenAddTask, onOpenAddRout
                           e.stopPropagation();
                           toggleTaskComplete(task.id);
                         }}
-                        className="mt-0.5 w-5 h-5 rounded-full border-2 border-slate-400 dark:border-white/40 group-hover:border-slate-900 dark:group-hover:border-white flex items-center justify-center transition-colors shrink-0"
+                        className="mt-0.5 w-5.5 h-5.5 rounded-lg border-2 border-slate-400 dark:border-white/40 group-hover:border-slate-900 dark:group-hover:border-white flex items-center justify-center transition-all shrink-0"
                       >
-                        <Circle className="w-4 h-4 text-transparent" />
+                        <Check className="w-3.5 h-3.5 text-transparent stroke-[3]" />
                       </motion.button>
                       <div className="min-w-0 space-y-1">
                         <h3 className="text-xs font-bold text-slate-900 dark:text-white truncate">

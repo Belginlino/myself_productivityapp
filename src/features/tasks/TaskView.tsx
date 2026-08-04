@@ -17,6 +17,7 @@ import {
   ShieldAlert,
   Sparkles,
   Search,
+  Check,
 } from 'lucide-react';
 import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
@@ -315,13 +316,13 @@ export const TaskView: React.FC = () => {
                 transition={{ duration: 0.2 }}
                 className="p-4 sm:p-5 rounded-3xl bg-slate-50/90 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/25 transition-all flex items-center justify-between gap-4 group shadow-sm"
               >
-                {/* Checkbox */}
+                {/* Square Checkbox */}
                 <motion.button
                   whileTap={{ scale: 0.85 }}
                   onClick={() => toggleTaskComplete(task.id)}
-                  className="w-6 h-6 rounded-full border-2 border-slate-400 dark:border-white/40 hover:border-slate-900 dark:hover:border-white flex items-center justify-center transition-colors shrink-0"
+                  className="w-5.5 h-5.5 rounded-lg border-2 border-slate-400 dark:border-white/40 group-hover:border-slate-900 dark:group-hover:border-white flex items-center justify-center transition-all shrink-0 mt-0.5"
                 >
-                  <Circle className="w-5 h-5 text-transparent" />
+                  <Check className="w-3.5 h-3.5 text-transparent stroke-[3]" />
                 </motion.button>
 
                 {/* Content */}
@@ -415,9 +416,9 @@ export const TaskView: React.FC = () => {
                       <motion.button
                         whileTap={{ scale: 0.85 }}
                         onClick={() => toggleTaskComplete(task.id)}
-                        className="w-5 h-5 rounded-full bg-slate-900 dark:bg-white text-white dark:text-black flex items-center justify-center shrink-0"
+                        className="w-5.5 h-5.5 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-slate-950 flex items-center justify-center shrink-0 shadow-sm"
                       >
-                        <CheckCircle2 className="w-4 h-4 stroke-[3]" />
+                        <Check className="w-3.5 h-3.5 stroke-[3]" />
                       </motion.button>
                       <div className="min-w-0">
                         <h4 className="text-xs font-bold line-through text-slate-400 dark:text-neutral-500 truncate">
