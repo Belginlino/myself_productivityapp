@@ -26,8 +26,8 @@ export const TopHeader: React.FC = () => {
   return (
     <header className="sticky top-0 z-20 bg-white/90 dark:bg-[#09090b]/90 backdrop-blur-2xl border-b border-slate-200/80 dark:border-white/10 px-3 sm:px-6 lg:px-8 py-2.5 flex items-center justify-between gap-2 transition-colors">
       {/* Left: App Logo & Name */}
-      <div className="flex items-center gap-2 shrink-0">
-        <img src="/favicon.svg" alt="Myself Logo" className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl shadow-md" />
+      <div className="flex items-center gap-2.5 shrink-0">
+        <img src="/logo.jpg" alt="Myself Logo" className="w-8 h-8 rounded-xl object-cover shadow-md border border-slate-200/80 dark:border-white/15" />
         <span className="font-black text-sm sm:text-base text-slate-900 dark:text-white tracking-tight">
           Myself
         </span>

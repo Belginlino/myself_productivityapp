@@ -46,10 +46,11 @@ export const PinLockScreen: React.FC = () => {
       className="fixed inset-0 z-[99999] bg-slate-950/95 backdrop-blur-3xl text-white flex flex-col items-center justify-center p-6 select-none"
     >
       <div className="w-full max-w-sm flex flex-col items-center text-center space-y-7">
-        {/* App Icon / Lock Icon */}
+        {/* App Logo */}
         <div className="relative">
-          <div className="w-20 h-20 rounded-3xl bg-white/10 border border-white/20 flex items-center justify-center shadow-2xl backdrop-blur-xl">
-            <Lock className="w-9 h-9 text-white animate-pulse" />
+          <img src="/logo.jpg" alt="Myself App Logo" className="w-20 h-20 rounded-3xl object-cover border-2 border-white/20 shadow-2xl" />
+          <div className="absolute -bottom-1.5 -right-1.5 p-1.5 rounded-full bg-slate-900 border border-white/20 shadow-md text-amber-400">
+            <Lock className="w-4 h-4" />
           </div>
         </div>
 

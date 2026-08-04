@@ -34,9 +34,7 @@ export const Sidebar: React.FC = () => {
     <aside className="hidden lg:flex flex-col w-64 shrink-0 bg-white/80 dark:bg-[#0c0c0e]/80 backdrop-blur-2xl border-r border-slate-200/80 dark:border-white/10 h-screen sticky top-0 z-30 transition-colors">
       {/* Brand Header */}
       <div className="p-6 flex items-center gap-3.5 border-b border-slate-200/80 dark:border-white/10">
-        <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-500 flex items-center justify-center shadow-glow-amber text-white font-black">
-          <img src="/favicon.svg" alt="Myself" className="w-8 h-8 rounded-xl" />
-        </div>
+        <img src="/logo.jpg" alt="Myself Logo" className="w-9 h-9 rounded-2xl object-cover shadow-md border border-slate-200/80 dark:border-white/15" />
         <div>
           <h1 className="font-black text-lg text-slate-900 dark:text-white tracking-tight leading-none">
             Myself
