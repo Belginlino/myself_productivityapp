@@ -3,6 +3,7 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // Helper functions
     function isSignedIn() {
       return request.auth != null;
     }
@@ -11,28 +12,19 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    match /{document=**} {
-      allow read, write: if false;
-    }
-
+    // User document and all nested subcollections (tasks, routines, settings, streaks)
     match /users/{userId} {
       allow read, write: if isOwner(userId);
 
-      match /settings/{docId} {
-        allow read, write: if isOwner(userId);
-      }
-
-      match /tasks/{taskId} {
-        allow read, write: if isOwner(userId);
-      }
-
-      match /routines/{routineId} {
-        allow read, write: if isOwner(userId);
-      }
-
-      match /streaks/{streakId} {
+      match /{allPaths=**} {
         allow read, write: if isOwner(userId);
       }
     }
+
+    // Fallback: Allow read & write for signed-in users across documents
+    match /{document=**} {
+      allow read, write: if isSignedIn();
+    }
   }
 }
+

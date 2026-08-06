@@ -11,7 +11,7 @@ import { db } from './config';
 import { useAppStore } from '../store/useAppStore';
 import { useTaskStore } from '../store/useTaskStore';
 import { useRoutineStore } from '../store/useRoutineStore';
-import { TaskItem } from '../types';
+import { TaskItem, RoutineItem } from '../types';
 
 export interface SyncStatus {
   success: boolean;
@@ -59,6 +59,42 @@ export const deleteTaskFromCloud = async (uid: string, taskId: string) => {
     await deleteDoc(taskRef);
   } catch (err) {
     console.error('Error deleting task from Cloud Firestore:', err);
+  }
+};
+
+/**
+ * Saves or updates a single routine directly to Cloud Firestore
+ */
+export const saveRoutineToCloud = async (uid: string, routine: RoutineItem) => {
+  if (!uid || uid === 'local-user-1') return;
+  try {
+    const routineRef = doc(db, 'users', uid, 'routines', routine.id);
+    const payload: Record<string, any> = {
+      id: routine.id,
+      title: routine.title,
+      time: routine.time || '08:00',
+      repeatEveryDay: routine.repeatEveryDay ?? true,
+      reminder: !!routine.reminder,
+      completedDates: Array.isArray(routine.completedDates) ? routine.completedDates : [],
+      order: routine.order ?? 0,
+      createdAt: routine.createdAt || new Date().toISOString(),
+    };
+    await setDoc(routineRef, payload, { merge: true });
+  } catch (err) {
+    console.error('Error saving routine to Cloud Firestore:', err);
+  }
+};
+
+/**
+ * Deletes a single routine document directly from Cloud Firestore
+ */
+export const deleteRoutineFromCloud = async (uid: string, routineId: string) => {
+  if (!uid || uid === 'local-user-1') return;
+  try {
+    const routineRef = doc(db, 'users', uid, 'routines', routineId);
+    await deleteDoc(routineRef);
+  } catch (err) {
+    console.error('Error deleting routine from Cloud Firestore:', err);
   }
 };
 
@@ -205,36 +241,23 @@ export const pullAllDataFromCloud = async (uid: string): Promise<SyncStatus> => 
       });
     }
 
-    // Pull Tasks & Merge
+    // Pull Tasks & Sync
     const tasksSnapshot = await getDocs(collection(db, 'users', uid, 'tasks'));
-    if (!tasksSnapshot.empty) {
-      const cloudTasks = tasksSnapshot.docs.map((docSnap) => ({
-        id: docSnap.id,
-        ...docSnap.data(),
-      })) as TaskItem[];
+    const cloudTasks = tasksSnapshot.docs.map((docSnap) => ({
+      id: docSnap.id,
+      ...docSnap.data(),
+    })) as TaskItem[];
+    useTaskStore.setState({ tasks: cloudTasks });
+    totalPulled += cloudTasks.length;
 
-      const localTasks = useTaskStore.getState().tasks;
-      const taskMap = new Map<string, TaskItem>();
-      cloudTasks.forEach((t) => taskMap.set(t.id, t));
-      localTasks.forEach((t) => {
-        if (!taskMap.has(t.id)) {
-          taskMap.set(t.id, t);
-        }
-      });
-      useTaskStore.setState({ tasks: Array.from(taskMap.values()) });
-      totalPulled += cloudTasks.length;
-    }
-
-    // Pull Routines
+    // Pull Routines & Sync
     const routinesSnapshot = await getDocs(collection(db, 'users', uid, 'routines'));
-    if (!routinesSnapshot.empty) {
-      const cloudRoutines = routinesSnapshot.docs.map((docSnap) => ({
-        id: docSnap.id,
-        ...docSnap.data(),
-      })) as any[];
-      useRoutineStore.setState({ routines: cloudRoutines });
-      totalPulled += cloudRoutines.length;
-    }
+    const cloudRoutines = routinesSnapshot.docs.map((docSnap) => ({
+      id: docSnap.id,
+      ...docSnap.data(),
+    })) as RoutineItem[];
+    useRoutineStore.setState({ routines: cloudRoutines });
+    totalPulled += cloudRoutines.length;
 
     // Pull Streaks
     const streakDocRef = doc(db, 'users', uid, 'streaks', 'main');

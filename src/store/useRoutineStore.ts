@@ -5,6 +5,8 @@ import {
   scheduleRoutineNotification,
   cancelRoutineNotification,
 } from '../services/notificationService';
+import { auth } from '../firebase/config';
+import { saveRoutineToCloud, deleteRoutineFromCloud } from '../firebase/syncService';
 
 interface RoutineState {
   routines: RoutineItem[];
@@ -43,6 +45,11 @@ export const useRoutineStore = create<RoutineState>()(
 
         set((state) => ({ routines: [...state.routines, newRoutine] }));
 
+        const uid = auth.currentUser?.uid;
+        if (uid) {
+          saveRoutineToCloud(uid, newRoutine);
+        }
+
         if (newRoutine.reminder) {
           scheduleRoutineNotification(newRoutine);
         }
@@ -61,6 +68,11 @@ export const useRoutineStore = create<RoutineState>()(
           routines: state.routines.map((r) => (r.id === id ? updated : r)),
         }));
 
+        const uid = auth.currentUser?.uid;
+        if (uid) {
+          saveRoutineToCloud(uid, updated);
+        }
+
         cancelRoutineNotification(id);
         if (updated.reminder) {
           scheduleRoutineNotification(updated);
@@ -71,6 +83,12 @@ export const useRoutineStore = create<RoutineState>()(
 
       deleteRoutine: (id) => {
         cancelRoutineNotification(id);
+
+        const uid = auth.currentUser?.uid;
+        if (uid) {
+          deleteRoutineFromCloud(uid, id);
+        }
+
         set((state) => ({
           routines: state.routines.filter((r) => r.id !== id),
         }));
@@ -83,6 +101,11 @@ export const useRoutineStore = create<RoutineState>()(
         list.splice(endIndex, 0, removed);
         const reordered = list.map((item, idx) => ({ ...item, order: idx }));
         set({ routines: reordered });
+
+        const uid = auth.currentUser?.uid;
+        if (uid) {
+          reordered.forEach((r) => saveRoutineToCloud(uid, r));
+        }
       },
 
       toggleRoutineCompletion: (id, dateStr) => {
@@ -95,11 +118,18 @@ export const useRoutineStore = create<RoutineState>()(
           ? routine.completedDates.filter((d) => d !== today)
           : [...routine.completedDates, today];
 
+        const updatedRoutine = { ...routine, completedDates: updatedDates };
+
         set((state) => ({
           routines: state.routines.map((r) =>
-            r.id === id ? { ...r, completedDates: updatedDates } : r
+            r.id === id ? updatedRoutine : r
           ),
         }));
+
+        const uid = auth.currentUser?.uid;
+        if (uid) {
+          saveRoutineToCloud(uid, updatedRoutine);
+        }
 
         get().recalculateStreaks();
       },
