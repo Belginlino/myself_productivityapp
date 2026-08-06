@@ -23,7 +23,7 @@ import { ProgressRing } from '../../components/ui/ProgressRing';
 import { BottomSheet } from '../../components/ui/BottomSheet';
 import { requestNotificationPermissions } from '../../services/notificationService';
 import { TimeInput12 } from '../../components/common/TimeInput12';
-import { format12Hour } from '../../utils/timeUtils';
+import { format12Hour, get24HourFromTimeStr } from '../../utils/timeUtils';
 
 export const RoutineView: React.FC = () => {
   const {
@@ -55,8 +55,7 @@ export const RoutineView: React.FC = () => {
 
   // Helper to categorize routine into Morning / Afternoon / Evening / Night
   const getRoutineCategory = (timeStr: string) => {
-    const parts = timeStr.split(':');
-    const hour = parseInt(parts[0], 10) || 8;
+    const hour = get24HourFromTimeStr(timeStr) ?? 8;
     if (hour >= 5 && hour < 12) return 'morning';
     if (hour >= 12 && hour < 17) return 'afternoon';
     if (hour >= 17 && hour < 21) return 'evening';

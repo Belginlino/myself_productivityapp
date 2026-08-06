@@ -1,7 +1,7 @@
 import React from 'react';
 import { TaskItem } from '../../types';
 import { TaskCard } from '../../features/tasks/TaskCard';
-import { Clock } from 'lucide-react';
+import { get24HourFromTimeStr, getTaskMinutesFromMidnight } from '../../utils/timeUtils';
 
 interface TimelineProps {
   tasks: TaskItem[];
@@ -9,39 +9,46 @@ interface TimelineProps {
 }
 
 const TIMELINE_HOURS = [
+  { label: '06:00 AM', hour: 6 },
   { label: '08:00 AM', hour: 8 },
   { label: '10:00 AM', hour: 10 },
   { label: '12:00 PM', hour: 12 },
-  { label: '03:00 PM', hour: 15 },
+  { label: '02:00 PM', hour: 14 },
+  { label: '04:00 PM', hour: 16 },
   { label: '06:00 PM', hour: 18 },
   { label: '08:00 PM', hour: 20 },
   { label: '10:00 PM', hour: 22 },
 ];
 
 export const Timeline: React.FC<TimelineProps> = ({ tasks, onEditTask }) => {
-  // Helper to extract hour number from dueTime string "HH:mm"
-  const getTaskHour = (dueTime?: string): number | null => {
-    if (!dueTime) return null;
-    const parts = dueTime.split(':');
-    if (parts.length > 0) {
-      const h = parseInt(parts[0], 10);
-      return isNaN(h) ? null : h;
-    }
-    return null;
-  };
+  // Group tasks by nearest timeline hour node seamlessly with zero gaps
+  const getTasksForHour = (index: number) => {
+    const node = TIMELINE_HOURS[index];
+    const isFirst = index === 0;
+    const isLast = index === TIMELINE_HOURS.length - 1;
+    const nextHour = !isLast ? TIMELINE_HOURS[index + 1].hour : 24;
 
-  // Group tasks by nearest timeline hour node
-  const getTasksForHour = (targetHour: number, isLast: boolean) => {
-    return tasks.filter((t) => {
-      const h = getTaskHour(t.dueTime);
+    const matched = tasks.filter((t) => {
+      const h = get24HourFromTimeStr(t.dueTime);
       if (h === null) {
-        // If no due time, group in 8 AM slot
-        return targetHour === 8;
+        // If task has no due time specified, display in 8 AM slot
+        return node.hour === 8;
+      }
+      if (isFirst && h < node.hour) {
+        // Tasks scheduled earlier than 6 AM go to first slot
+        return true;
       }
       if (isLast) {
-        return h >= targetHour;
+        return h >= node.hour;
       }
-      return h >= targetHour && h < targetHour + 2;
+      return h >= node.hour && h < nextHour;
+    });
+
+    // Sort tasks chronologically by time within each slot
+    return matched.sort((a, b) => {
+      const minA = getTaskMinutesFromMidnight(a.dueTime) ?? 0;
+      const minB = getTaskMinutesFromMidnight(b.dueTime) ?? 0;
+      return minA - minB;
     });
   };
 
@@ -49,7 +56,7 @@ export const Timeline: React.FC<TimelineProps> = ({ tasks, onEditTask }) => {
     <div className="relative py-4">
       {TIMELINE_HOURS.map((node, index) => {
         const isLast = index === TIMELINE_HOURS.length - 1;
-        const nodeTasks = getTasksForHour(node.hour, isLast);
+        const nodeTasks = getTasksForHour(index);
 
         return (
           <div key={node.label} className="relative flex gap-2.5 sm:gap-6 mb-6 sm:mb-8 group">

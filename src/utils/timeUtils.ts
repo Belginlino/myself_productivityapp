@@ -3,6 +3,64 @@
  */
 
 /**
+ * Extracts 24-hour integer (0-23) from any time string (e.g., "08:00 PM", "20:00", "05:46 PM", "9:00 AM")
+ */
+export const get24HourFromTimeStr = (timeStr?: string): number | null => {
+  if (!timeStr || !timeStr.trim()) return null;
+  const trimmed = timeStr.trim();
+
+  // AM/PM format matching (e.g. "08:00 PM", "5:46 pm", "9:00 AM")
+  const ampmMatch = trimmed.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  if (ampmMatch) {
+    let h = parseInt(ampmMatch[1], 10);
+    const period = ampmMatch[3].toUpperCase();
+    if (period === 'PM' && h < 12) h += 12;
+    if (period === 'AM' && h === 12) h = 0;
+    return h;
+  }
+
+  // 24-hour format matching (e.g. "20:00", "05:46", "09:00")
+  const parts = trimmed.split(':');
+  if (parts.length >= 2) {
+    const h = parseInt(parts[0], 10);
+    if (!isNaN(h) && h >= 0 && h <= 23) {
+      return h;
+    }
+  }
+
+  return null;
+};
+
+/**
+ * Returns total minutes from midnight (0 - 1439) for sorting time strings chronologically.
+ */
+export const getTaskMinutesFromMidnight = (timeStr?: string): number | null => {
+  if (!timeStr || !timeStr.trim()) return null;
+  const trimmed = timeStr.trim();
+
+  const ampmMatch = trimmed.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  if (ampmMatch) {
+    let h = parseInt(ampmMatch[1], 10);
+    const m = parseInt(ampmMatch[2], 10);
+    const period = ampmMatch[3].toUpperCase();
+    if (period === 'PM' && h < 12) h += 12;
+    if (period === 'AM' && h === 12) h = 0;
+    return h * 60 + m;
+  }
+
+  const parts = trimmed.split(':');
+  if (parts.length >= 2) {
+    const h = parseInt(parts[0], 10);
+    const m = parseInt(parts[1], 10);
+    if (!isNaN(h) && !isNaN(m) && h >= 0 && h <= 23 && m >= 0 && m <= 59) {
+      return h * 60 + m;
+    }
+  }
+
+  return null;
+};
+
+/**
  * Converts a 24-hour time string (e.g., "21:00", "09:00", "00:30") or existing time string
  * into a formatted 12-hour string with AM/PM (e.g., "09:00 PM", "09:00 AM", "12:30 AM").
  */
