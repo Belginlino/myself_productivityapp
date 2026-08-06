@@ -19,10 +19,9 @@ import { TaskItem } from '../../types';
 
 export const TaskView: React.FC = () => {
   const { tasks } = useTaskStore();
-  const { toggleQuickAdd, setActiveTab } = useAppStore();
+  const { toggleQuickAdd, setActiveTab, setEditingTask } = useAppStore();
 
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [editingTask, setEditingTask] = useState<TaskItem | null>(null);
   const [showMonthDropdown, setShowMonthDropdown] = useState(false);
   const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'completed'>('all');
 
@@ -180,8 +179,8 @@ export const TaskView: React.FC = () => {
         </div>
       )}
 
-      {/* Floating Action Button */}
-      <div className="fixed bottom-24 right-6 sm:right-10 z-40 flex items-center gap-3">
+      {/* Floating Action Button (Visible on desktop where BottomNav is hidden) */}
+      <div className="fixed bottom-10 right-10 z-40 hidden lg:flex items-center gap-3">
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.92 }}

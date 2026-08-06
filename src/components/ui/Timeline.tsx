@@ -52,10 +52,10 @@ export const Timeline: React.FC<TimelineProps> = ({ tasks, onEditTask }) => {
         const nodeTasks = getTasksForHour(node.hour, isLast);
 
         return (
-          <div key={node.label} className="relative flex gap-4 sm:gap-6 mb-8 group">
+          <div key={node.label} className="relative flex gap-2.5 sm:gap-6 mb-6 sm:mb-8 group">
             {/* Left Column: Time label & Dashed vertical line */}
-            <div className="flex flex-col items-center min-w-[72px] sm:min-w-[84px] pt-1">
-              <span className="text-xs font-bold text-text-secondary tracking-wider font-mono">
+            <div className="flex flex-col items-center min-w-[58px] sm:min-w-[80px] shrink-0 pt-1">
+              <span className="text-[10px] sm:text-xs font-bold text-text-secondary tracking-wider font-mono text-center">
                 {node.label}
               </span>
 

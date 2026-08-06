@@ -1,8 +1,8 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-  "productName": "myself",
+  "productName": "tempo",
   "version": "0.1.0",
-  "identifier": "com.belgin.myselfproductivityos",
+  "identifier": "com.belgin.tempoproductivityos",
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://localhost:3000",
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "myself-windows-app",
+        "title": "Tempo Productivity",
         "width": 800,
         "height": 600,
         "resizable": true,

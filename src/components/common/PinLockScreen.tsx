@@ -48,14 +48,14 @@ export const PinLockScreen: React.FC = () => {
       <div className="w-full max-w-sm flex flex-col items-center text-center space-y-7">
         {/* App Logo */}
         <div className="relative">
-          <img src="/logo.jpg" alt="Myself App Logo" className="w-20 h-20 rounded-3xl object-cover border-2 border-white/20 shadow-2xl" />
+          <img src="/logo.jpg" alt="Tempo App Logo" className="w-20 h-20 rounded-3xl object-cover border-2 border-white/20 shadow-2xl" />
           <div className="absolute -bottom-1.5 -right-1.5 p-1.5 rounded-full bg-slate-900 border border-white/20 shadow-md text-amber-400">
             <Lock className="w-4 h-4" />
           </div>
         </div>
 
         <div>
-          <h2 className="text-2xl font-black tracking-tight text-white">Myself App Locked</h2>
+          <h2 className="text-2xl font-black tracking-tight text-white">Tempo App Locked</h2>
           <p className="text-xs text-neutral-400 mt-1.5 font-medium">
             Enter your 4-digit security passcode to proceed
           </p>

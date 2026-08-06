@@ -19,6 +19,7 @@ import { speechService } from '../../services/speechService';
 import { audioRecorderService } from '../../services/audioRecorderService';
 import { VoiceNotePlayer } from '../common/VoiceNotePlayer';
 import { VoicePermissionModal } from '../common/VoicePermissionModal';
+import { TimeInput12 } from '../common/TimeInput12';
 
 export const QuickAddModal: React.FC = () => {
   const { isQuickAddOpen, toggleQuickAdd } = useAppStore();
@@ -279,12 +280,7 @@ export const QuickAddModal: React.FC = () => {
                 <label className="block text-xs font-bold text-[#A8B3C7] uppercase tracking-wider mb-2 flex items-center gap-1.5">
                   <Clock className="w-3.5 h-3.5" /> Time
                 </label>
-                <input
-                  type="time"
-                  value={dueTime}
-                  onChange={(e) => setDueTime(e.target.value)}
-                  className="w-full px-3.5 py-3 rounded-2xl border border-white/10 bg-[#1B2435] text-xs font-semibold text-white focus:outline-none focus:border-[#C9F48A]"
-                />
+                <TimeInput12 value={dueTime} onChange={setDueTime} accentColor="#C9F48A" />
               </div>
             </div>
           ) : (
@@ -292,12 +288,7 @@ export const QuickAddModal: React.FC = () => {
               <label className="block text-xs font-bold text-[#A8B3C7] uppercase tracking-wider mb-2 flex items-center gap-1.5">
                 <Clock className="w-3.5 h-3.5" /> Scheduled Time
               </label>
-              <input
-                type="time"
-                value={time}
-                onChange={(e) => setTime(e.target.value)}
-                className="w-full px-4 py-3.5 rounded-2xl border border-white/10 bg-[#1B2435] text-xs font-semibold text-white focus:outline-none focus:border-[#37C7F4]"
-              />
+              <TimeInput12 value={time} onChange={setTime} accentColor="#37C7F4" />
             </div>
           )}
 

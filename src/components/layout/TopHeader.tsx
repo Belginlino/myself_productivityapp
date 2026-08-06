@@ -28,11 +28,11 @@ export const TopHeader: React.FC = () => {
       <div className="flex items-center gap-3 shrink-0">
         <img
           src="/logo.jpg"
-          alt="Myself Logo"
+          alt="Tempo Logo"
           className="w-8 h-8 rounded-xl object-cover border border-white/15 shadow-md"
         />
         <span className="font-extrabold text-base text-white tracking-tight">
-          Myself
+          Tempo
         </span>
       </div>
 

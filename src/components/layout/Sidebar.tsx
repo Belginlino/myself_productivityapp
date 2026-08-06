@@ -34,10 +34,10 @@ export const Sidebar: React.FC = () => {
     <aside className="hidden lg:flex flex-col w-64 shrink-0 bg-[#1B2435] border-r border-white/10 h-screen sticky top-0 z-30">
       {/* Brand Header */}
       <div className="p-6 flex items-center gap-3.5 border-b border-white/10">
-        <img src="/logo.jpg" alt="Myself Logo" className="w-10 h-10 rounded-2xl object-cover border border-white/15 shadow-md" />
+        <img src="/logo.jpg" alt="Tempo Logo" className="w-10 h-10 rounded-2xl object-cover border border-white/15 shadow-md" />
         <div>
           <h1 className="font-extrabold text-lg text-white tracking-tight leading-none">
-            Myself
+            Tempo
           </h1>
           <span className="text-[11px] font-bold text-[#C9F48A]">
             Mobile Productivity

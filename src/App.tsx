@@ -3,6 +3,7 @@ import { Sidebar } from './components/layout/Sidebar';
 import { BottomNav } from './components/layout/BottomNav';
 import { TopHeader } from './components/layout/TopHeader';
 import { QuickAddModal } from './components/layout/QuickAddModal';
+import { EditTaskModal } from './components/layout/EditTaskModal';
 import { SettingsModal } from './components/common/SettingsModal';
 import { PinLockScreen } from './components/common/PinLockScreen';
 
@@ -86,6 +87,9 @@ export const App: React.FC = () => {
 
       {/* Global Quick Add Bottom Sheet Modal */}
       <QuickAddModal />
+
+      {/* Global Edit Task Bottom Sheet Modal */}
+      <EditTaskModal />
 
       {/* Global Settings Modal */}
       <SettingsModal />

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { UserProfile, AppSettings, ThemeMode, NotificationItem } from '../types';
+import { UserProfile, AppSettings, ThemeMode, NotificationItem, TaskItem } from '../types';
 
 interface AppState {
   profile: UserProfile;
@@ -10,12 +10,14 @@ interface AppState {
   isSettingsOpen: boolean;
   notifications: NotificationItem[];
   unreadNotificationCount: number;
+  editingTask: TaskItem | null;
 
   // Actions
   setActiveTab: (tab: 'home' | 'tasks' | 'routines') => void;
   setTheme: (theme: ThemeMode) => void;
   toggleQuickAdd: (open?: boolean) => void;
   toggleSettings: (open?: boolean) => void;
+  setEditingTask: (task: TaskItem | null) => void;
   updateProfile: (updates: Partial<UserProfile>) => void;
   updateSettings: (updates: Partial<AppSettings>) => void;
   addNotification: (notification: Omit<NotificationItem, 'id' | 'createdAt' | 'read'>) => void;
@@ -59,6 +61,7 @@ export const useAppStore = create<AppState>()(
       isSettingsOpen: false,
       notifications: [],
       unreadNotificationCount: 0,
+      editingTask: null,
 
       setActiveTab: (tab) => set({ activeTab: tab }),
 
@@ -80,6 +83,8 @@ export const useAppStore = create<AppState>()(
         set((state) => ({
           isSettingsOpen: open !== undefined ? open : !state.isSettingsOpen,
         })),
+
+      setEditingTask: (task) => set({ editingTask: task }),
 
       updateProfile: (updates) =>
         set((state) => ({

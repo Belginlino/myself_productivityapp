@@ -22,6 +22,8 @@ import { RoutineItem } from '../../types';
 import { ProgressRing } from '../../components/ui/ProgressRing';
 import { BottomSheet } from '../../components/ui/BottomSheet';
 import { requestNotificationPermissions } from '../../services/notificationService';
+import { TimeInput12 } from '../../components/common/TimeInput12';
+import { format12Hour } from '../../utils/timeUtils';
 
 export const RoutineView: React.FC = () => {
   const {
@@ -247,7 +249,7 @@ export const RoutineView: React.FC = () => {
                             </h4>
                             <div className="flex items-center gap-3 mt-1 text-xs text-[#A8B3C7]">
                               <span className="font-mono font-bold text-white/90">
-                                {routine.time}
+                                {format12Hour(routine.time)}
                               </span>
                               {routine.reminder && (
                                 <span className="flex items-center gap-1 text-[11px] text-[#37C7F4]">
@@ -312,12 +314,7 @@ export const RoutineView: React.FC = () => {
             <label className="block text-xs font-bold text-[#A8B3C7] uppercase tracking-wider mb-2">
               Time
             </label>
-            <input
-              type="time"
-              value={time}
-              onChange={(e) => setTime(e.target.value)}
-              className="w-full px-4 py-3.5 rounded-2xl border border-white/10 bg-[#1B2435] text-sm font-semibold text-white focus:outline-none focus:border-[#C9F48A]"
-            />
+            <TimeInput12 value={time} onChange={setTime} accentColor="#C9F48A" />
           </div>
 
           <div className="flex items-center justify-between p-3.5 rounded-2xl bg-[#1B2435] border border-white/10">

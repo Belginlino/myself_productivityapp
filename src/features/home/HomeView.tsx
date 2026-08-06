@@ -193,8 +193,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
         )}
       </div>
 
-      {/* Floating Add Action Button */}
-      <div className="fixed bottom-24 right-6 sm:right-10 z-40">
+      {/* Floating Add Action Button (Visible on desktop where BottomNav is hidden) */}
+      <div className="fixed bottom-10 right-10 z-40 hidden lg:flex">
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.92 }}
