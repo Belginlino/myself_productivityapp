@@ -12,6 +12,7 @@ import {
   Sparkles,
   Zap,
   Check,
+  Edit2,
 } from 'lucide-react';
 import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
@@ -335,6 +336,17 @@ export const HomeView: React.FC<HomeViewProps> = ({ onOpenAddTask, onOpenAddRout
                         )}
                       </div>
                     </div>
+
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setActiveTab('tasks');
+                      }}
+                      className="p-1.5 rounded-xl text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-white/10 transition-colors shrink-0"
+                      title="Edit task in Tasks tab"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
                   </motion.div>
                 ))
               )}

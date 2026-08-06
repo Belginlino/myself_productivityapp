@@ -3,6 +3,7 @@ import {
   setDoc,
   getDoc,
   getDocs,
+  deleteDoc,
   collection,
   writeBatch,
 } from 'firebase/firestore';
@@ -10,12 +11,56 @@ import { db } from './config';
 import { useAppStore } from '../store/useAppStore';
 import { useTaskStore } from '../store/useTaskStore';
 import { useRoutineStore } from '../store/useRoutineStore';
+import { TaskItem } from '../types';
 
 export interface SyncStatus {
   success: boolean;
   message: string;
   itemsSynced?: number;
 }
+
+/**
+ * Saves or updates a single task directly to Cloud Firestore
+ */
+export const saveTaskToCloud = async (uid: string, task: TaskItem) => {
+  if (!uid || uid === 'local-user-1') return;
+  try {
+    const taskRef = doc(db, 'users', uid, 'tasks', task.id);
+    const payload: Record<string, any> = {
+      id: task.id,
+      title: task.title,
+      status: task.status || 'pending',
+      reminder: !!task.reminder,
+      createdAt: task.createdAt || new Date().toISOString(),
+      updatedAt: task.updatedAt || new Date().toISOString(),
+    };
+    if (task.description) payload.description = task.description;
+    if (task.dueDate) payload.dueDate = task.dueDate;
+    if (task.dueTime) payload.dueTime = task.dueTime;
+    if (task.voiceNoteUrl) payload.voiceNoteUrl = task.voiceNoteUrl;
+    if (task.voiceNoteDuration !== undefined && task.voiceNoteDuration !== null) {
+      payload.voiceNoteDuration = task.voiceNoteDuration;
+    }
+    if (task.completedAt) payload.completedAt = task.completedAt;
+
+    await setDoc(taskRef, payload, { merge: true });
+  } catch (err) {
+    console.error('Error saving task to Cloud Firestore:', err);
+  }
+};
+
+/**
+ * Deletes a single task document directly from Cloud Firestore
+ */
+export const deleteTaskFromCloud = async (uid: string, taskId: string) => {
+  if (!uid || uid === 'local-user-1') return;
+  try {
+    const taskRef = doc(db, 'users', uid, 'tasks', taskId);
+    await deleteDoc(taskRef);
+  } catch (err) {
+    console.error('Error deleting task from Cloud Firestore:', err);
+  }
+};
 
 /**
  * Pushes all local state from Zustand stores to Cloud Firestore under users/{uid}
@@ -66,7 +111,8 @@ export const pushAllDataToCloud = async (uid: string): Promise<SyncStatus> => {
     const { tasks } = useTaskStore.getState();
     tasks.forEach((task) => {
       const taskRef = doc(db, 'users', uid, 'tasks', task.id);
-      const payload: any = {
+      const payload: Record<string, any> = {
+        id: task.id,
         title: task.title,
         status: task.status || 'pending',
         reminder: !!task.reminder,
@@ -76,7 +122,10 @@ export const pushAllDataToCloud = async (uid: string): Promise<SyncStatus> => {
       if (task.description) payload.description = task.description;
       if (task.dueDate) payload.dueDate = task.dueDate;
       if (task.dueTime) payload.dueTime = task.dueTime;
-      if (task.voiceNote) payload.voiceNote = task.voiceNote;
+      if (task.voiceNoteUrl) payload.voiceNoteUrl = task.voiceNoteUrl;
+      if (task.voiceNoteDuration !== undefined && task.voiceNoteDuration !== null) {
+        payload.voiceNoteDuration = task.voiceNoteDuration;
+      }
       if (task.completedAt) payload.completedAt = task.completedAt;
 
       batch.set(taskRef, payload, { merge: true });
@@ -156,14 +205,23 @@ export const pullAllDataFromCloud = async (uid: string): Promise<SyncStatus> => 
       });
     }
 
-    // Pull Tasks
+    // Pull Tasks & Merge
     const tasksSnapshot = await getDocs(collection(db, 'users', uid, 'tasks'));
     if (!tasksSnapshot.empty) {
       const cloudTasks = tasksSnapshot.docs.map((docSnap) => ({
         id: docSnap.id,
         ...docSnap.data(),
-      })) as any[];
-      useTaskStore.setState({ tasks: cloudTasks });
+      })) as TaskItem[];
+
+      const localTasks = useTaskStore.getState().tasks;
+      const taskMap = new Map<string, TaskItem>();
+      cloudTasks.forEach((t) => taskMap.set(t.id, t));
+      localTasks.forEach((t) => {
+        if (!taskMap.has(t.id)) {
+          taskMap.set(t.id, t);
+        }
+      });
+      useTaskStore.setState({ tasks: Array.from(taskMap.values()) });
       totalPulled += cloudTasks.length;
     }
 
@@ -231,3 +289,4 @@ export const initAutoStoreSync = (uid: string) => {
     if (debounceTimer) clearTimeout(debounceTimer);
   };
 };
+

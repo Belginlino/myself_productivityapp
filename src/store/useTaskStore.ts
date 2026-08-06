@@ -5,6 +5,8 @@ import {
   scheduleTaskNotification,
   cancelTaskNotification,
 } from '../services/notificationService';
+import { auth } from '../firebase/config';
+import { saveTaskToCloud, deleteTaskFromCloud } from '../firebase/syncService';
 
 interface TaskState {
   tasks: TaskItem[];
@@ -32,6 +34,11 @@ export const useTaskStore = create<TaskState>()(
 
         set((state) => ({ tasks: [newTask, ...state.tasks] }));
 
+        const uid = auth.currentUser?.uid;
+        if (uid) {
+          saveTaskToCloud(uid, newTask);
+        }
+
         if (newTask.reminder && newTask.dueDate) {
           scheduleTaskNotification(newTask);
         }
@@ -53,6 +60,11 @@ export const useTaskStore = create<TaskState>()(
           tasks: state.tasks.map((task) => (task.id === id ? updatedTask : task)),
         }));
 
+        const uid = auth.currentUser?.uid;
+        if (uid) {
+          saveTaskToCloud(uid, updatedTask);
+        }
+
         cancelTaskNotification(id);
         if (updatedTask.status === 'pending' && updatedTask.reminder && updatedTask.dueDate) {
           scheduleTaskNotification(updatedTask);
@@ -61,6 +73,12 @@ export const useTaskStore = create<TaskState>()(
 
       deleteTask: (id) => {
         cancelTaskNotification(id);
+
+        const uid = auth.currentUser?.uid;
+        if (uid) {
+          deleteTaskFromCloud(uid, id);
+        }
+
         set((state) => ({
           tasks: state.tasks.filter((t) => t.id !== id),
         }));
@@ -84,6 +102,11 @@ export const useTaskStore = create<TaskState>()(
           tasks: state.tasks.map((t) => (t.id === id ? updatedTask : t)),
         }));
 
+        const uid = auth.currentUser?.uid;
+        if (uid) {
+          saveTaskToCloud(uid, updatedTask);
+        }
+
         if (isNowCompleted) {
           cancelTaskNotification(id);
         } else if (updatedTask.reminder && updatedTask.dueDate) {
@@ -96,3 +119,4 @@ export const useTaskStore = create<TaskState>()(
     }
   )
 );
+

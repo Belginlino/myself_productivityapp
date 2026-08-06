@@ -140,37 +140,41 @@ export const TaskView: React.FC = () => {
     e.preventDefault();
     if (!title.trim() && !recordedVoiceUrl) return;
 
-    if (reminder && dueDate) {
-      await requestNotificationPermissions();
+    try {
+      if (reminder && dueDate) {
+        await requestNotificationPermissions().catch(() => {});
+      }
+
+      const taskTitle =
+        title.trim() ||
+        `Voice Note ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+
+      if (editingTaskId) {
+        updateTask(editingTaskId, {
+          title: taskTitle,
+          description: description.trim() || undefined,
+          dueDate: dueDate || undefined,
+          dueTime: dueTime || undefined,
+          reminder,
+          voiceNoteUrl: recordedVoiceUrl,
+          voiceNoteDuration: recordedVoiceDuration,
+        });
+      } else {
+        addTask({
+          title: taskTitle,
+          description: description.trim() || undefined,
+          dueDate: dueDate || undefined,
+          dueTime: dueTime || undefined,
+          reminder,
+          voiceNoteUrl: recordedVoiceUrl,
+          voiceNoteDuration: recordedVoiceDuration,
+        });
+      }
+
+      setIsModalOpen(false);
+    } catch (err) {
+      console.error('Error saving task:', err);
     }
-
-    const taskTitle =
-      title.trim() ||
-      `Voice Note ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-
-    if (editingTaskId) {
-      updateTask(editingTaskId, {
-        title: taskTitle,
-        description: description.trim() || undefined,
-        dueDate: dueDate || undefined,
-        dueTime: dueTime || undefined,
-        reminder,
-        voiceNoteUrl: recordedVoiceUrl,
-        voiceNoteDuration: recordedVoiceDuration,
-      });
-    } else {
-      addTask({
-        title: taskTitle,
-        description: description.trim() || undefined,
-        dueDate: dueDate || undefined,
-        dueTime: dueTime || undefined,
-        reminder,
-        voiceNoteUrl: recordedVoiceUrl,
-        voiceNoteDuration: recordedVoiceDuration,
-      });
-    }
-
-    setIsModalOpen(false);
   };
 
   const formatRecordingTime = (secs: number) => {
@@ -364,12 +368,12 @@ export const TaskView: React.FC = () => {
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center gap-1.5 shrink-0 opacity-80 group-hover:opacity-100 transition-opacity">
+                <div className="flex items-center gap-1 shrink-0">
                   <motion.button
                     whileTap={{ scale: 0.9 }}
                     onClick={() => openEditModal(task)}
-                    className="p-2 rounded-xl text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-white/10 transition-colors"
-                    title="Edit task"
+                    className="p-2 rounded-xl text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-white/10 transition-colors"
+                    title="Edit Task"
                   >
                     <Edit2 className="w-4 h-4" />
                   </motion.button>
@@ -435,12 +439,23 @@ export const TaskView: React.FC = () => {
                       </div>
                     </div>
 
-                    <button
-                      onClick={() => deleteTask(task.id)}
-                      className="p-2 text-slate-400 hover:text-red-500 transition-colors"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <motion.button
+                        whileTap={{ scale: 0.9 }}
+                        onClick={() => openEditModal(task)}
+                        className="p-2 rounded-xl text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-white/10 transition-colors"
+                        title="Edit Task"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </motion.button>
+                      <button
+                        onClick={() => deleteTask(task.id)}
+                        className="p-2 text-slate-400 hover:text-red-500 transition-colors"
+                        title="Delete task"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </motion.div>
                 ))}
               </AnimatePresence>

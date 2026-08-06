@@ -66,35 +66,39 @@ export const QuickAddModal: React.FC = () => {
     e.preventDefault();
     if (!title.trim() && !recordedVoiceUrl) return;
 
-    if (itemType === 'task') {
-      const taskTitle =
-        title.trim() ||
-        `Voice Note ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-      addTask({
-        title: taskTitle,
-        dueDate: dueDate || undefined,
-        dueTime: dueTime || undefined,
-        reminder: true,
-        voiceNoteUrl: recordedVoiceUrl,
-        voiceNoteDuration: recordedVoiceDuration,
-      });
-    } else {
-      addRoutine({
-        title: title.trim(),
-        time: time || '08:00',
-        repeatEveryDay: true,
-        reminder: true,
-      });
-    }
+    try {
+      if (itemType === 'task') {
+        const taskTitle =
+          title.trim() ||
+          `Voice Note ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+        addTask({
+          title: taskTitle,
+          dueDate: dueDate || undefined,
+          dueTime: dueTime || undefined,
+          reminder: true,
+          voiceNoteUrl: recordedVoiceUrl,
+          voiceNoteDuration: recordedVoiceDuration,
+        });
+      } else {
+        addRoutine({
+          title: title.trim(),
+          time: time || '08:00',
+          repeatEveryDay: true,
+          reminder: true,
+        });
+      }
 
-    setTitle('');
-    setDueDate('');
-    setDueTime('');
-    setTime('08:00');
-    setRecordedVoiceUrl(undefined);
-    setRecordedVoiceDuration(undefined);
-    if (isRecording) handleCancelRecording();
-    toggleQuickAdd(false);
+      setTitle('');
+      setDueDate('');
+      setDueTime('');
+      setTime('08:00');
+      setRecordedVoiceUrl(undefined);
+      setRecordedVoiceDuration(undefined);
+      if (isRecording) handleCancelRecording();
+      toggleQuickAdd(false);
+    } catch (err) {
+      console.error('Error saving item in QuickAddModal:', err);
+    }
   };
 
   const formatRecordingTime = (secs: number) => {
