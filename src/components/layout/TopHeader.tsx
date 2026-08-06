@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Moon, Sun, Bell, Flame, Check, Cloud, Mail, Mic, Settings } from 'lucide-react';
+import { Plus, Bell, Flame, Check, Cloud, Mail, Mic, Settings } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 import { useRoutineStore } from '../../store/useRoutineStore';
 import { FirebaseAuthModal } from '../common/FirebaseAuthModal';
@@ -9,7 +9,6 @@ export const TopHeader: React.FC = () => {
   const {
     profile,
     settings,
-    setTheme,
     toggleQuickAdd,
     toggleSettings,
     notifications,
@@ -24,40 +23,35 @@ export const TopHeader: React.FC = () => {
   const [isVoicePermissionOpen, setIsVoicePermissionOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-20 bg-white/90 dark:bg-[#09090b]/90 backdrop-blur-2xl border-b border-slate-200/80 dark:border-white/10 px-3 sm:px-6 lg:px-8 py-2.5 flex items-center justify-between gap-2 transition-colors">
-      {/* Left: App Logo & Name */}
-      <div className="flex items-center gap-2.5 shrink-0">
-        <img src="/logo.jpg" alt="Myself Logo" className="w-8 h-8 rounded-xl object-cover shadow-md border border-slate-200/80 dark:border-white/15" />
-        <span className="font-black text-sm sm:text-base text-slate-900 dark:text-white tracking-tight">
+    <header className="sticky top-0 z-20 bg-[#1B2435]/90 backdrop-blur-2xl border-b border-white/10 px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-3">
+      {/* Left: Logo */}
+      <div className="flex items-center gap-3 shrink-0">
+        <img
+          src="/logo.jpg"
+          alt="Myself Logo"
+          className="w-8 h-8 rounded-xl object-cover border border-white/15 shadow-md"
+        />
+        <span className="font-extrabold text-base text-white tracking-tight">
           Myself
         </span>
       </div>
 
-      {/* Right: Actions & Controls */}
-      <div className="flex items-center gap-1 sm:gap-2.5 shrink-0 overflow-x-auto no-scrollbar">
-        {/* Streak Counter (Tablet/Desktop) */}
-        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-500 text-xs font-black">
-          <Flame className="w-4 h-4 fill-amber-500" />
-          <span>{streakData.currentStreak} Day Streak</span>
+      {/* Right: Actions */}
+      <div className="flex items-center gap-2 shrink-0">
+        {/* Streak Counter */}
+        <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FF5D73]/15 border border-[#FF5D73]/30 text-[#FF5D73] text-xs font-bold font-mono">
+          <Flame className="w-3.5 h-3.5 fill-[#FF5D73]" />
+          <span>{streakData.currentStreak} Days</span>
         </div>
 
-        {/* Voice Permission Trigger (Tablet/Desktop) */}
-        <button
-          onClick={() => setIsVoicePermissionOpen(true)}
-          className="hidden sm:block p-2 rounded-full text-slate-500 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
-          title="Voice Permissions"
-        >
-          <Mic className="w-4 h-4" />
-        </button>
-
-        {/* Firebase Cloud Sync Button */}
+        {/* Cloud Sync */}
         {settings.firebaseConnected && profile.uid && profile.uid !== 'local-user-1' ? (
           <button
             onClick={() => setIsAuthModalOpen(true)}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-white border border-slate-200/80 dark:border-white/15 hover:bg-slate-200 dark:hover:bg-white/20 text-xs font-extrabold transition-all"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 text-white border border-white/15 hover:bg-white/20 text-xs font-bold transition-all"
             title="Cloud Synced"
           >
-            <Cloud className="w-3.5 h-3.5 text-emerald-500" />
+            <Cloud className="w-3.5 h-3.5 text-[#76E56A]" />
             <span className="hidden md:inline truncate max-w-[90px]">
               {profile.name || 'Synced'}
             </span>
@@ -65,49 +59,49 @@ export const TopHeader: React.FC = () => {
         ) : (
           <button
             onClick={() => setIsAuthModalOpen(true)}
-            className="p-1.5 sm:px-3 sm:py-1.5 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-950 font-extrabold text-xs shadow-sm hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-1"
+            className="px-3 py-1.5 rounded-full bg-[#C9F48A] text-[#1B2435] font-bold text-xs shadow-glow-accent hover:bg-[#b1e06d] transition-all flex items-center gap-1.5"
             title="Sign in with Email"
           >
-            <Mail className="w-3.5 h-3.5 shrink-0" />
+            <Mail className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Sign In</span>
           </button>
         )}
 
-        {/* Notifications Dropdown */}
+        {/* Notifications */}
         <div className="relative">
           <button
             onClick={() => setShowNotifications(!showNotifications)}
-            className="relative p-1.5 sm:p-2 rounded-full text-slate-500 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
+            className="relative p-2 rounded-full bg-[#23324A] text-[#A8B3C7] hover:text-white border border-white/5 transition-colors"
             title="Notifications"
           >
             <Bell className="w-4 h-4" />
             {unreadNotificationCount > 0 && (
-              <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-black" />
+              <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#FF5D73] ring-2 ring-[#1B2435]" />
             )}
           </button>
 
           {showNotifications && (
-            <div className="absolute right-0 mt-3 w-72 sm:w-80 bg-white/95 dark:bg-[#121215]/95 backdrop-blur-2xl border border-slate-200 dark:border-white/15 rounded-3xl shadow-2xl z-50 p-5">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-200/80 dark:border-white/10">
-                <h4 className="font-extrabold text-sm text-slate-900 dark:text-white">Notifications</h4>
+            <div className="absolute right-0 mt-3 w-72 sm:w-80 bg-[#23324A] border border-white/10 rounded-3xl shadow-2xl z-50 p-5 text-white">
+              <div className="flex items-center justify-between pb-3 border-b border-white/10">
+                <h4 className="font-bold text-sm text-white">Notifications</h4>
                 <button
                   onClick={() => {
                     markNotificationsAsRead();
                     setShowNotifications(false);
                   }}
-                  className="text-xs text-slate-500 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white flex items-center gap-1 font-bold"
+                  className="text-xs text-[#A8B3C7] hover:text-white flex items-center gap-1 font-bold"
                 >
-                  <Check className="w-3.5 h-3.5" /> Mark read
+                  <Check className="w-3.5 h-3.5 text-[#C9F48A]" /> Mark read
                 </button>
               </div>
-              <div className="max-h-64 overflow-y-auto divide-y divide-slate-100 dark:divide-white/10 mt-2">
+              <div className="max-h-64 overflow-y-auto divide-y divide-white/5 mt-2">
                 {notifications.length === 0 ? (
-                  <p className="text-xs text-slate-500 dark:text-neutral-400 text-center py-5">No notifications</p>
+                  <p className="text-xs text-[#A8B3C7] text-center py-5">No new notifications</p>
                 ) : (
                   notifications.map((n) => (
                     <div key={n.id} className="py-3 text-xs">
-                      <p className="font-bold text-slate-900 dark:text-white">{n.title}</p>
-                      <p className="text-slate-500 dark:text-neutral-400 mt-0.5 leading-relaxed">{n.body}</p>
+                      <p className="font-bold text-white">{n.title}</p>
+                      <p className="text-[#A8B3C7] mt-0.5 leading-relaxed">{n.body}</p>
                     </div>
                   ))
                 )}
@@ -116,47 +110,13 @@ export const TopHeader: React.FC = () => {
           )}
         </div>
 
-        {/* Theme Toggle Pill */}
-        <div className="flex items-center bg-slate-100 dark:bg-white/10 p-0.5 sm:p-1 rounded-full border border-slate-200/80 dark:border-white/15 backdrop-blur-md">
-          <button
-            onClick={() => setTheme('light')}
-            className={`p-1 sm:p-1.5 rounded-full transition-colors ${
-              settings.theme === 'light'
-                ? 'bg-white text-slate-900 shadow-sm'
-                : 'text-slate-400 hover:text-slate-900 dark:hover:text-white'
-            }`}
-            title="Light Theme"
-          >
-            <Sun className="w-3.5 h-3.5" />
-          </button>
-          <button
-            onClick={() => setTheme('dark')}
-            className={`p-1 sm:p-1.5 rounded-full transition-colors ${
-              settings.theme === 'dark'
-                ? 'bg-white text-slate-950 shadow-sm'
-                : 'text-slate-400 hover:text-slate-900 dark:hover:text-white'
-            }`}
-            title="Dark Theme"
-          >
-            <Moon className="w-3.5 h-3.5" />
-          </button>
-        </div>
-
-        {/* Always Visible Settings Button */}
+        {/* Settings Button */}
         <button
           onClick={() => toggleSettings(true)}
-          className="p-2 rounded-full bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-white hover:bg-slate-200 dark:hover:bg-white/20 transition-all border border-slate-200/80 dark:border-white/15 shrink-0"
+          className="p-2 rounded-full bg-[#23324A] text-[#A8B3C7] hover:text-white border border-white/5 transition-colors"
           title="Open Settings"
         >
           <Settings className="w-4 h-4" />
-        </button>
-
-        {/* Quick Add Button (Tablet/Desktop) */}
-        <button
-          onClick={() => toggleQuickAdd(true)}
-          className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-slate-900 dark:bg-white hover:bg-slate-800 dark:hover:bg-neutral-200 text-white dark:text-slate-950 text-xs font-extrabold shadow-md active:scale-95 transition-all"
-        >
-          <Plus className="w-4 h-4" /> Quick Add
         </button>
       </div>
 

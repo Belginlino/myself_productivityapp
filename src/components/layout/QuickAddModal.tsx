@@ -1,11 +1,21 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Modal } from '../common/Modal';
-import { Button } from '../common/Button';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { BottomSheet } from '../ui/BottomSheet';
+import { WaveformAnim } from '../ui/WaveformAnim';
 import { useAppStore } from '../../store/useAppStore';
 import { useTaskStore } from '../../store/useTaskStore';
 import { useRoutineStore } from '../../store/useRoutineStore';
-import { CheckSquare, Clock, Mic, Square, Trash2, ShieldAlert } from 'lucide-react';
+import {
+  CheckSquare,
+  Clock,
+  Mic,
+  Square,
+  Trash2,
+  Bell,
+  Calendar,
+  Sparkles,
+} from 'lucide-react';
+import { speechService } from '../../services/speechService';
 import { audioRecorderService } from '../../services/audioRecorderService';
 import { VoiceNotePlayer } from '../common/VoiceNotePlayer';
 import { VoicePermissionModal } from '../common/VoicePermissionModal';
@@ -17,48 +27,82 @@ export const QuickAddModal: React.FC = () => {
 
   const [itemType, setItemType] = useState<'task' | 'routine'>('task');
   const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
   const [time, setTime] = useState('08:00');
   const [dueDate, setDueDate] = useState('');
-  const [dueTime, setDueTime] = useState('');
+  const [dueTime, setDueTime] = useState('09:00');
+  const [reminder, setReminder] = useState(true);
 
-  // Audio Voice Note Recording State
-  const [isRecording, setIsRecording] = useState(false);
+  // Speech Recognition & Voice Note States
+  const [isSpeechListening, setIsSpeechListening] = useState(false);
+  const [isAudioRecording, setIsAudioRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [recordedVoiceUrl, setRecordedVoiceUrl] = useState<string | undefined>(undefined);
   const [recordedVoiceDuration, setRecordedVoiceDuration] = useState<number | undefined>(undefined);
   const [audioError, setAudioError] = useState<string | null>(null);
   const [isPermissionModalOpen, setIsPermissionModalOpen] = useState(false);
 
-  const handleStartRecording = async () => {
+  // Default due date to today YYYY-MM-DD
+  useEffect(() => {
+    if (isQuickAddOpen && !dueDate) {
+      setDueDate(new Date().toISOString().split('T')[0]);
+    }
+  }, [isQuickAddOpen, dueDate]);
+
+  // Speech to Text trigger
+  const handleToggleSpeechRecognition = () => {
+    setAudioError(null);
+    if (isSpeechListening) {
+      speechService.stopListening();
+      setIsSpeechListening(false);
+    } else {
+      setIsSpeechListening(true);
+      speechService.startListening({
+        onResult: (transcript) => {
+          setTitle(transcript);
+        },
+        onError: (err) => {
+          setIsSpeechListening(false);
+          setAudioError(err);
+        },
+        onEnd: () => {
+          setIsSpeechListening(false);
+        },
+      });
+    }
+  };
+
+  // Audio Note Recording
+  const handleStartAudioRecording = async () => {
     setAudioError(null);
     try {
-      setIsRecording(true);
+      setIsAudioRecording(true);
       setRecordingTime(0);
       await audioRecorderService.startRecording((seconds) => {
         setRecordingTime(seconds);
       });
     } catch (err: any) {
-      setIsRecording(false);
-      setAudioError(err.message || 'Microphone access failed. Please enable voice permission.');
+      setIsAudioRecording(false);
+      setAudioError(err.message || 'Microphone access failed.');
       setIsPermissionModalOpen(true);
     }
   };
 
-  const handleStopRecording = async () => {
+  const handleStopAudioRecording = async () => {
     try {
       const result = await audioRecorderService.stopRecording();
-      setIsRecording(false);
+      setIsAudioRecording(false);
       setRecordedVoiceUrl(result.audioUrl);
       setRecordedVoiceDuration(result.duration);
     } catch (err: any) {
-      setIsRecording(false);
+      setIsAudioRecording(false);
       setAudioError(err.message || 'Failed to save recording.');
     }
   };
 
-  const handleCancelRecording = () => {
+  const handleCancelAudioRecording = () => {
     audioRecorderService.cancelRecording();
-    setIsRecording(false);
+    setIsAudioRecording(false);
     setRecordingTime(0);
   };
 
@@ -70,12 +114,13 @@ export const QuickAddModal: React.FC = () => {
       if (itemType === 'task') {
         const taskTitle =
           title.trim() ||
-          `Voice Note ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+          `Voice Task ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
         addTask({
           title: taskTitle,
+          description: description.trim() || undefined,
           dueDate: dueDate || undefined,
           dueTime: dueTime || undefined,
-          reminder: true,
+          reminder,
           voiceNoteUrl: recordedVoiceUrl,
           voiceNoteDuration: recordedVoiceDuration,
         });
@@ -84,121 +129,211 @@ export const QuickAddModal: React.FC = () => {
           title: title.trim(),
           time: time || '08:00',
           repeatEveryDay: true,
-          reminder: true,
+          reminder,
         });
       }
 
+      // Reset
       setTitle('');
-      setDueDate('');
-      setDueTime('');
-      setTime('08:00');
+      setDescription('');
       setRecordedVoiceUrl(undefined);
       setRecordedVoiceDuration(undefined);
-      if (isRecording) handleCancelRecording();
+      if (isAudioRecording) handleCancelAudioRecording();
+      if (isSpeechListening) speechService.stopListening();
       toggleQuickAdd(false);
     } catch (err) {
-      console.error('Error saving item in QuickAddModal:', err);
+      console.error('Error saving item:', err);
     }
   };
 
-  const formatRecordingTime = (secs: number) => {
-    const m = Math.floor(secs / 60);
-    const s = Math.floor(secs % 60);
-    return `${m}:${s < 10 ? '0' : ''}${s}`;
-  };
-
   return (
-    <Modal
-      isOpen={isQuickAddOpen}
-      onClose={() => {
-        if (isRecording) handleCancelRecording();
-        toggleQuickAdd(false);
-      }}
-      title="Quick Add Item"
-    >
-      <form onSubmit={handleSave} className="space-y-5">
-        {/* Item Type Pill Switcher */}
-        <div className="relative flex items-center p-1.5 bg-slate-100/80 dark:bg-white/[0.04] rounded-2xl border border-slate-200/80 dark:border-white/10">
-          <button
-            type="button"
-            onClick={() => setItemType('task')}
-            className={`relative flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl font-extrabold text-xs transition-all ${
-              itemType === 'task'
-                ? 'text-slate-900 dark:text-white'
-                : 'text-slate-500 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white'
-            }`}
-          >
-            {itemType === 'task' && (
-              <motion.div
-                layoutId="quickAddType"
-                className="absolute inset-0 bg-white dark:bg-white/10 rounded-xl shadow-sm border border-slate-200 dark:border-white/15"
-                transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-              />
-            )}
-            <CheckSquare className="relative z-10 w-4 h-4 text-indigo-500" />
-            <span className="relative z-10">Task</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setItemType('routine')}
-            className={`relative flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl font-extrabold text-xs transition-all ${
-              itemType === 'routine'
-                ? 'text-slate-900 dark:text-white'
-                : 'text-slate-500 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white'
-            }`}
-          >
-            {itemType === 'routine' && (
-              <motion.div
-                layoutId="quickAddType"
-                className="absolute inset-0 bg-white dark:bg-white/10 rounded-xl shadow-sm border border-slate-200 dark:border-white/15"
-                transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-              />
-            )}
-            <Clock className="relative z-10 w-4 h-4 text-emerald-500" />
-            <span className="relative z-10">Routine</span>
-          </button>
-        </div>
-
-        {/* Voice Note Recording section for Tasks */}
-        {itemType === 'task' && (
-          <div className="p-4 rounded-3xl bg-slate-100/90 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-                <Mic className="w-4 h-4 text-indigo-500" /> WhatsApp Voice Message
-              </span>
-
-              {isRecording && (
-                <span className="text-xs font-mono font-black text-red-500 animate-pulse flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-red-500" />
-                  {formatRecordingTime(recordingTime)}
-                </span>
+    <>
+      <BottomSheet
+        isOpen={isQuickAddOpen}
+        onClose={() => {
+          if (isAudioRecording) handleCancelAudioRecording();
+          if (isSpeechListening) speechService.stopListening();
+          toggleQuickAdd(false);
+        }}
+        title={`New ${itemType === 'task' ? 'Task' : 'Daily Routine'}`}
+      >
+        <form onSubmit={handleSave} className="space-y-5">
+          {/* Item Type Selector */}
+          <div className="relative flex items-center p-1 bg-[#1B2435] rounded-2xl border border-white/10">
+            <button
+              type="button"
+              onClick={() => setItemType('task')}
+              className={`relative flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl font-bold text-xs transition-all ${
+                itemType === 'task' ? 'text-[#1B2435]' : 'text-white/60 hover:text-white'
+              }`}
+            >
+              {itemType === 'task' && (
+                <motion.div
+                  layoutId="quickAddType"
+                  className="absolute inset-0 bg-[#C9F48A] rounded-xl shadow-glow-accent"
+                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                />
               )}
+              <CheckSquare className="relative z-10 w-4 h-4" />
+              <span className="relative z-10">Task</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setItemType('routine')}
+              className={`relative flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl font-bold text-xs transition-all ${
+                itemType === 'routine' ? 'text-[#1B2435]' : 'text-white/60 hover:text-white'
+              }`}
+            >
+              {itemType === 'routine' && (
+                <motion.div
+                  layoutId="quickAddType"
+                  className="absolute inset-0 bg-[#37C7F4] rounded-xl shadow-glow-blue"
+                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                />
+              )}
+              <Clock className="relative z-10 w-4 h-4" />
+              <span className="relative z-10">Routine</span>
+            </button>
+          </div>
+
+          {/* Speech-to-Text Voice Task Banner */}
+          <div className="flex items-center justify-between p-3.5 rounded-2xl bg-[#1B2435] border border-white/10">
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={handleToggleSpeechRecognition}
+                className={`p-3 rounded-xl transition-transform active:scale-95 ${
+                  isSpeechListening
+                    ? 'bg-[#FF5D73] text-white animate-pulse'
+                    : 'bg-[#C9F48A] text-[#1B2435] shadow-glow-accent'
+                }`}
+                title="Tap to speak title"
+              >
+                <Mic className="w-5 h-5" />
+              </button>
+              <div>
+                <p className="text-xs font-bold text-white flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-[#C9F48A]" /> Voice Task Creation
+                </p>
+                <p className="text-[11px] text-[#A8B3C7]">
+                  {isSpeechListening ? 'Listening... Speak your task now' : 'Tap mic to speak your task title'}
+                </p>
+              </div>
             </div>
 
-            {isRecording ? (
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={handleStopRecording}
-                  className="flex-1 py-2.5 rounded-2xl bg-red-500 text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-md hover:bg-red-600 transition-all"
-                >
-                  <Square className="w-4 h-4 fill-white" /> Stop & Attach Audio
-                </button>
-                <button
-                  type="button"
-                  onClick={handleCancelRecording}
-                  className="p-2.5 rounded-2xl text-slate-400 hover:text-red-500 transition-colors"
-                  title="Discard recording"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+            {isSpeechListening && <WaveformAnim isRecording={true} barCount={7} />}
+          </div>
+
+          {/* Task Title Field */}
+          <div>
+            <label className="block text-xs font-bold text-[#A8B3C7] uppercase tracking-wider mb-2">
+              {itemType === 'task' ? 'Task Title' : 'Routine Name'}{' '}
+              <span className="text-[#FF5D73]">*</span>
+            </label>
+            <input
+              type="text"
+              required={!recordedVoiceUrl}
+              placeholder={
+                itemType === 'task'
+                  ? 'e.g., Design UI layout for client'
+                  : 'e.g., Morning Meditation & Workout'
+              }
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="w-full px-4 py-3.5 rounded-2xl border border-white/10 bg-[#1B2435] text-sm font-semibold text-white placeholder:text-white/30 focus:outline-none focus:border-[#C9F48A]"
+            />
+          </div>
+
+          {/* Description */}
+          {itemType === 'task' && (
+            <div>
+              <label className="block text-xs font-bold text-[#A8B3C7] uppercase tracking-wider mb-2">
+                Description (Optional)
+              </label>
+              <textarea
+                rows={2}
+                placeholder="Add subtasks or extra details..."
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="w-full px-4 py-3 rounded-2xl border border-white/10 bg-[#1B2435] text-xs font-medium text-white placeholder:text-white/30 focus:outline-none focus:border-[#C9F48A] resize-none"
+              />
+            </div>
+          )}
+
+          {/* Date & Time Picker */}
+          {itemType === 'task' ? (
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-bold text-[#A8B3C7] uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                  <Calendar className="w-3.5 h-3.5" /> Date
+                </label>
+                <input
+                  type="date"
+                  value={dueDate}
+                  onChange={(e) => setDueDate(e.target.value)}
+                  className="w-full px-3.5 py-3 rounded-2xl border border-white/10 bg-[#1B2435] text-xs font-semibold text-white focus:outline-none focus:border-[#C9F48A]"
+                />
               </div>
-            ) : recordedVoiceUrl ? (
-              <div className="space-y-2">
-                <p className="text-[11px] font-semibold text-slate-500 dark:text-neutral-400">
-                  Recorded Audio Note:
-                </p>
+              <div>
+                <label className="block text-xs font-bold text-[#A8B3C7] uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5" /> Time
+                </label>
+                <input
+                  type="time"
+                  value={dueTime}
+                  onChange={(e) => setDueTime(e.target.value)}
+                  className="w-full px-3.5 py-3 rounded-2xl border border-white/10 bg-[#1B2435] text-xs font-semibold text-white focus:outline-none focus:border-[#C9F48A]"
+                />
+              </div>
+            </div>
+          ) : (
+            <div>
+              <label className="block text-xs font-bold text-[#A8B3C7] uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5" /> Scheduled Time
+              </label>
+              <input
+                type="time"
+                value={time}
+                onChange={(e) => setTime(e.target.value)}
+                className="w-full px-4 py-3.5 rounded-2xl border border-white/10 bg-[#1B2435] text-xs font-semibold text-white focus:outline-none focus:border-[#37C7F4]"
+              />
+            </div>
+          )}
+
+          {/* Voice Audio Note Attachment */}
+          {itemType === 'task' && (
+            <div className="p-4 rounded-2xl bg-[#1B2435] border border-white/10 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-white flex items-center gap-2">
+                  <Mic className="w-4 h-4 text-[#37C7F4]" /> Voice Audio Attachment
+                </span>
+
+                {isAudioRecording && (
+                  <span className="text-xs font-mono font-bold text-[#FF5D73] animate-pulse">
+                    Recording {recordingTime}s
+                  </span>
+                )}
+              </div>
+
+              {isAudioRecording ? (
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={handleStopAudioRecording}
+                    className="flex-1 py-2.5 rounded-xl bg-[#FF5D73] text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md hover:bg-red-600 transition-colors"
+                  >
+                    <Square className="w-4 h-4 fill-white" /> Stop & Attach Audio
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCancelAudioRecording}
+                    className="p-2.5 rounded-xl text-white/50 hover:text-white transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : recordedVoiceUrl ? (
                 <VoiceNotePlayer
                   audioUrl={recordedVoiceUrl}
                   duration={recordedVoiceDuration}
@@ -207,117 +342,71 @@ export const QuickAddModal: React.FC = () => {
                     setRecordedVoiceDuration(undefined);
                   }}
                 />
-              </div>
-            ) : (
-              <button
-                type="button"
-                onClick={handleStartRecording}
-                className="w-full py-3 rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-slate-950 font-extrabold text-xs flex items-center justify-center gap-2 shadow-md hover:scale-[1.01] active:scale-98 transition-all"
-              >
-                <Mic className="w-4 h-4" /> Click to Record Voice Message
-              </button>
-            )}
-
-            {audioError && (
-              <div className="space-y-2 pt-1">
-                <p className="text-[11px] text-red-500 font-medium">{audioError}</p>
+              ) : (
                 <button
                   type="button"
-                  onClick={() => setIsPermissionModalOpen(true)}
-                  className="px-3 py-1.5 rounded-full bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500/20 text-xs font-bold flex items-center gap-1.5 transition-colors"
+                  onClick={handleStartAudioRecording}
+                  className="w-full py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold text-xs flex items-center justify-center gap-2 transition-colors"
                 >
-                  <ShieldAlert className="w-3.5 h-3.5" /> Enable Voice Permission
+                  <Mic className="w-4 h-4 text-[#37C7F4]" /> Record Audio Note
                 </button>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Title Input */}
-        <div>
-          <label className="block text-xs font-extrabold text-slate-700 dark:text-slate-300 mb-2">
-            {itemType === 'task' ? 'Task Title (Optional if voice recorded)' : 'Routine Title'}{' '}
-            {itemType === 'routine' && <span className="text-red-500">*</span>}
-          </label>
-
-          <input
-            type="text"
-            required={itemType === 'routine' && !recordedVoiceUrl}
-            placeholder={itemType === 'task' ? 'e.g., Complete project report' : 'e.g., Drink 2L water'}
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="w-full px-4 py-3.5 rounded-2xl border border-slate-200/80 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-slate-400 dark:focus:border-white/30"
-          />
-        </div>
-
-        {/* Task Specific Fields */}
-        {itemType === 'task' && (
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-extrabold text-slate-700 dark:text-slate-300 mb-2">
-                Due Date
-              </label>
-              <input
-                type="date"
-                value={dueDate}
-                onChange={(e) => setDueDate(e.target.value)}
-                className="w-full px-3.5 py-3 rounded-2xl border border-slate-200/80 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs font-semibold text-slate-900 dark:text-white focus:outline-none"
-              />
+              )}
             </div>
-            <div>
-              <label className="block text-xs font-extrabold text-slate-700 dark:text-slate-300 mb-2">
-                Due Time
-              </label>
-              <input
-                type="time"
-                value={dueTime}
-                onChange={(e) => setDueTime(e.target.value)}
-                className="w-full px-3.5 py-3 rounded-2xl border border-slate-200/80 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs font-semibold text-slate-900 dark:text-white focus:outline-none"
-              />
+          )}
+
+          {/* Reminder Toggle */}
+          <div className="flex items-center justify-between p-3.5 rounded-2xl bg-[#1B2435] border border-white/10">
+            <div className="flex items-center gap-2.5">
+              <Bell className="w-4 h-4 text-[#C9F48A]" />
+              <span className="text-xs font-bold text-white">Deadline Local Notification</span>
             </div>
+            <button
+              type="button"
+              onClick={() => setReminder(!reminder)}
+              className={`w-12 h-6 rounded-full transition-colors relative p-0.5 ${
+                reminder ? 'bg-[#C9F48A]' : 'bg-white/20'
+              }`}
+            >
+              <div
+                className={`w-5 h-5 rounded-full bg-[#1B2435] transition-transform ${
+                  reminder ? 'translate-x-6' : 'translate-x-0'
+                }`}
+              />
+            </button>
           </div>
-        )}
 
-        {/* Routine Specific Fields */}
-        {itemType === 'routine' && (
-          <div>
-            <label className="block text-xs font-extrabold text-slate-700 dark:text-slate-300 mb-2">
-              Scheduled Time
-            </label>
-            <input
-              type="time"
-              value={time}
-              onChange={(e) => setTime(e.target.value)}
-              className="w-full px-4 py-3.5 rounded-2xl border border-slate-200/80 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-xs font-semibold text-slate-900 dark:text-white focus:outline-none"
-            />
+          {/* Action Buttons */}
+          <div className="pt-3 flex items-center justify-end gap-3 border-t border-white/5">
+            <button
+              type="button"
+              onClick={() => {
+                if (isAudioRecording) handleCancelAudioRecording();
+                if (isSpeechListening) speechService.stopListening();
+                toggleQuickAdd(false);
+              }}
+              className="px-5 py-3 rounded-2xl bg-white/5 hover:bg-white/10 text-white/70 text-xs font-bold transition-colors"
+            >
+              Cancel
+            </button>
+            <motion.button
+              whileTap={{ scale: 0.96 }}
+              type="submit"
+              className="px-6 py-3 rounded-2xl bg-[#C9F48A] text-[#1B2435] font-bold text-xs shadow-glow-accent hover:bg-[#b1e06d] transition-colors"
+            >
+              Save {itemType === 'task' ? 'Task' : 'Routine'}
+            </motion.button>
           </div>
-        )}
-
-        <div className="pt-2 flex justify-end gap-3">
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={() => {
-              if (isRecording) handleCancelRecording();
-              toggleQuickAdd(false);
-            }}
-          >
-            Cancel
-          </Button>
-          <Button type="submit" variant="primary">
-            Create {itemType === 'task' ? 'Task' : 'Routine'}
-          </Button>
-        </div>
-      </form>
+        </form>
+      </BottomSheet>
 
       <VoicePermissionModal
         isOpen={isPermissionModalOpen}
         onClose={() => setIsPermissionModalOpen(false)}
         onGranted={() => {
           setAudioError(null);
-          handleStartRecording();
+          handleStartAudioRecording();
         }}
       />
-    </Modal>
+    </>
   );
 };

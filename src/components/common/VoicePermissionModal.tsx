@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Mic, ShieldCheck, AlertCircle, Settings, CheckCircle2 } from 'lucide-react';
+import { Mic, ShieldCheck, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { Modal } from './Modal';
-import { Button } from './Button';
 import { audioRecorderService } from '../../services/audioRecorderService';
 
 interface VoicePermissionModalProps {
@@ -58,90 +57,69 @@ export const VoicePermissionModal: React.FC<VoicePermissionModalProps> = ({
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Voice Permission" maxWidth="md">
-      <div className="space-y-6 text-center">
+      <div className="space-y-6 text-center text-white">
         {/* Header Icon */}
-        <div className="mx-auto w-16 h-16 rounded-full bg-slate-100 dark:bg-white/10 flex items-center justify-center border border-slate-200 dark:border-white/15 shadow-inner">
+        <div className="mx-auto w-16 h-16 rounded-2xl bg-[#1B2435] flex items-center justify-center border border-white/10 shadow-inner">
           {status === 'granted' ? (
-            <CheckCircle2 className="w-8 h-8 text-emerald-500 animate-bounce" />
+            <CheckCircle2 className="w-8 h-8 text-[#76E56A] animate-bounce" />
           ) : status === 'denied' ? (
-            <AlertCircle className="w-8 h-8 text-red-500" />
+            <AlertCircle className="w-8 h-8 text-[#FF5D73]" />
           ) : (
-            <Mic className="w-8 h-8 text-slate-900 dark:text-white animate-pulse" />
+            <Mic className="w-8 h-8 text-[#C9F48A] animate-pulse" />
           )}
         </div>
 
         {/* Content */}
         <div className="space-y-2">
-          <h4 className="text-lg font-black text-slate-900 dark:text-white">
+          <h4 className="text-lg font-bold text-white">
             {status === 'granted'
               ? 'Voice Permission Granted!'
               : 'Enable Microphone Access'}
           </h4>
-          <p className="text-xs sm:text-sm text-slate-600 dark:text-neutral-300 leading-relaxed max-w-sm mx-auto">
+          <p className="text-xs sm:text-sm text-[#A8B3C7] leading-relaxed max-w-sm mx-auto">
             {status === 'granted'
-              ? 'Microphone access is enabled. You can now record voice notes and WhatsApp messages anytime.'
-              : 'To record WhatsApp-style audio notes and voice tasks on your mobile device, please enable Voice Permission.'}
+              ? 'Microphone access is enabled. You can now record voice notes and speech tasks anytime.'
+              : 'To record WhatsApp-style audio notes and voice tasks on your device, please enable Voice Permission.'}
           </p>
         </div>
 
         {/* Permission Status Pill */}
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-semibold">
-          <ShieldCheck className="w-4 h-4 text-slate-700 dark:text-neutral-300" />
-          <span className="text-slate-500 dark:text-neutral-400">Mobile Status:</span>
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#1B2435] border border-white/10 text-xs font-semibold">
+          <ShieldCheck className="w-4 h-4 text-[#C9F48A]" />
+          <span className="text-[#A8B3C7]">Status:</span>
           <span
             className={`font-bold capitalize ${
               status === 'granted'
-                ? 'text-emerald-500'
+                ? 'text-[#76E56A]'
                 : status === 'denied'
-                ? 'text-red-500'
-                : 'text-amber-500'
+                ? 'text-[#FF5D73]'
+                : 'text-[#37C7F4]'
             }`}
           >
             {status === 'prompt' ? 'Permission Required' : status}
           </span>
         </div>
 
-        {/* Instructions if Denied */}
-        {status === 'denied' && (
-          <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-left text-xs text-red-600 dark:text-red-300 space-y-2">
-            <div className="flex items-center gap-2 font-bold">
-              <Settings className="w-4 h-4" />
-              <span>How to enable on Mobile Device:</span>
-            </div>
-            <ol className="list-decimal list-inside space-y-1 text-[11px] leading-relaxed">
-              <li>Open <strong>Android Settings</strong> on your phone</li>
-              <li>Go to <strong>Apps</strong> &gt; <strong>Myself</strong> (or your Mobile Browser)</li>
-              <li>Tap <strong>Permissions</strong> &gt; <strong>Microphone</strong></li>
-              <li>Select <strong>Allow</strong> and return to the app</li>
-            </ol>
-          </div>
-        )}
+        {errorMsg && <p className="text-xs text-[#FF5D73] font-bold max-w-xs mx-auto">{errorMsg}</p>}
 
-        {errorMsg && (
-          <p className="text-xs text-red-500 font-medium">{errorMsg}</p>
-        )}
+        {/* Action Button */}
+        <div className="pt-2 flex justify-center gap-3">
+          <button
+            onClick={onClose}
+            className="px-5 py-3 rounded-2xl bg-white/5 hover:bg-white/10 text-[#A8B3C7] hover:text-white text-xs font-bold transition-colors"
+          >
+            Cancel
+          </button>
 
-        {/* Buttons */}
-        <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
           {status !== 'granted' && (
-            <Button
-              variant="primary"
+            <button
               onClick={handleEnablePermission}
               disabled={isRequesting}
-              icon={<Mic className="w-4 h-4" />}
-              className="w-full sm:w-auto"
+              className="px-6 py-3 rounded-2xl bg-[#C9F48A] text-[#1B2435] font-bold text-xs shadow-glow-accent hover:bg-[#b1e06d] transition-colors disabled:opacity-50"
             >
-              {isRequesting ? 'Requesting...' : 'Enable Voice Permission'}
-            </Button>
+              {isRequesting ? 'Requesting...' : 'Allow Microphone'}
+            </button>
           )}
-
-          <Button
-            variant="ghost"
-            onClick={onClose}
-            className="w-full sm:w-auto text-xs"
-          >
-            {status === 'granted' ? 'Close' : 'Cancel / Later'}
-          </Button>
         </div>
       </div>
     </Modal>

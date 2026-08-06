@@ -60,15 +60,15 @@ export const Modal: React.FC<ModalProps> = ({
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 15 }}
               transition={{ duration: 0.25, ease: 'easeOut' }}
-              className={`relative w-full ${maxWidthClasses[maxWidth]} my-auto bg-white/95 dark:bg-[rgba(18,18,18,0.85)] backdrop-blur-2xl border border-black/10 dark:border-white/15 rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.5)] p-6 sm:p-8 z-10`}
+              className={`relative w-full ${maxWidthClasses[maxWidth]} my-auto bg-[#23324A] text-white border border-white/10 rounded-3xl shadow-2xl p-6 sm:p-8 z-10`}
             >
-              <div className="flex items-center justify-between pb-4 border-b border-black/5 dark:border-white/10">
-                <h3 className="text-lg font-extrabold tracking-tight text-slate-900 dark:text-white">
+              <div className="flex items-center justify-between pb-4 border-b border-white/10">
+                <h3 className="text-lg font-bold tracking-wide text-white">
                   {title}
                 </h3>
                 <button
                   onClick={onClose}
-                  className="p-2 rounded-full text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+                  className="p-2 rounded-full text-[#A8B3C7] hover:text-white hover:bg-white/10 transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>

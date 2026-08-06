@@ -18,25 +18,25 @@ export const Button: React.FC<ButtonProps> = ({
   ...props
 }) => {
   const baseStyles =
-    'inline-flex items-center justify-center font-bold rounded-full transition-all duration-300 ease-out focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.97]';
+    'inline-flex items-center justify-center font-bold rounded-2xl transition-all duration-200 focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.97]';
 
   const sizeStyles = {
-    sm: 'px-4 py-1.5 text-xs gap-1.5',
-    md: 'px-5 py-2.5 text-xs gap-2',
-    lg: 'px-7 py-3.5 text-sm gap-2.5',
+    sm: 'px-3.5 py-2 text-xs gap-1.5',
+    md: 'px-5 py-3 text-xs gap-2',
+    lg: 'px-6 py-3.5 text-sm gap-2.5',
   };
 
   const variantStyles = {
     primary:
-      'bg-white text-black hover:bg-neutral-200 shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:shadow-[0_0_30px_rgba(255,255,255,0.35)]',
+      'bg-[#C9F48A] text-[#1B2435] hover:bg-[#b1e06d] shadow-glow-accent',
     secondary:
-      'bg-white/10 text-white hover:bg-white/20 border border-white/15 backdrop-blur-md hover:border-white/30',
+      'bg-[#23324A] text-white hover:bg-[#2C3E5B] border border-white/10 shadow-md',
     outline:
-      'border border-slate-300 dark:border-white/20 text-slate-800 dark:text-white hover:bg-black/5 dark:hover:bg-white/10 backdrop-blur-sm',
+      'border border-white/15 text-white hover:bg-white/10 backdrop-blur-sm',
     ghost:
-      'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10',
+      'text-[#A8B3C7] hover:text-white hover:bg-white/10',
     danger:
-      'bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 hover:bg-red-500/20',
+      'bg-[#FF5D73]/20 text-[#FF5D73] border border-[#FF5D73]/30 hover:bg-[#FF5D73]/30',
   };
 
   return (

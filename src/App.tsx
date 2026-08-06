@@ -11,22 +11,15 @@ import { TaskView } from './features/tasks/TaskView';
 import { RoutineView } from './features/routines/RoutineView';
 
 import { useAppStore } from './store/useAppStore';
-import { useTaskStore } from './store/useTaskStore';
 import { useRoutineStore } from './store/useRoutineStore';
 import { initAuthListener } from './firebase/authService';
 import { pullAllDataFromCloud, initAutoStoreSync } from './firebase/syncService';
 
 export const App: React.FC = () => {
   const { activeTab, settings } = useAppStore();
-  const { addTask } = useTaskStore();
-  const { addRoutine, recalculateStreaks } = useRoutineStore();
+  const { recalculateStreaks } = useRoutineStore();
 
   useEffect(() => {
-    // Synchronize initial theme class on root element
-    const root = document.documentElement;
-    root.classList.remove('light', 'dark');
-    root.classList.add(settings.theme || 'dark');
-
     // Recalculate routine streaks on app load
     recalculateStreaks();
 
@@ -49,19 +42,15 @@ export const App: React.FC = () => {
       unsubscribeAuth();
       if (unsubscribeAutoSync) unsubscribeAutoSync();
     };
-  }, [settings.theme, settings.autoSyncOnLogin]);
+  }, [settings.autoSyncOnLogin]);
 
   const renderActiveView = () => {
     switch (activeTab) {
       case 'home':
         return (
           <HomeView
-            onOpenAddTask={() => {
-              useAppStore.getState().setActiveTab('tasks');
-            }}
-            onOpenAddRoutine={() => {
-              useAppStore.getState().setActiveTab('routines');
-            }}
+            onOpenAddTask={() => useAppStore.getState().setActiveTab('tasks')}
+            onOpenAddRoutine={() => useAppStore.getState().setActiveTab('routines')}
           />
         );
       case 'tasks':
@@ -71,41 +60,37 @@ export const App: React.FC = () => {
       default:
         return (
           <HomeView
-            onOpenAddTask={() => {
-              useAppStore.getState().setActiveTab('tasks');
-            }}
-            onOpenAddRoutine={() => {
-              useAppStore.getState().setActiveTab('routines');
-            }}
+            onOpenAddTask={() => useAppStore.getState().setActiveTab('tasks')}
+            onOpenAddRoutine={() => useAppStore.getState().setActiveTab('routines')}
           />
         );
     }
   };
 
   return (
-    <div className="min-h-screen flex bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-200">
-      {/* Desktop Sidebar */}
+    <div className="min-h-screen flex bg-[#1B2435] text-white selection:bg-[#C9F48A] selection:text-[#1B2435]">
+      {/* Sidebar for Desktop */}
       <Sidebar />
 
-      {/* Main Content Workspace */}
-      <div className="flex-1 flex flex-col min-w-0">
+      {/* Main Content App Workspace */}
+      <div className="flex-1 flex flex-col min-w-0 min-h-screen relative">
         <TopHeader />
 
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 pb-28 lg:pb-8 max-w-6xl w-full mx-auto">
+        <main className="flex-1 px-4 sm:px-6 lg:px-8 pt-4 max-w-4xl w-full mx-auto">
           {renderActiveView()}
         </main>
+
+        {/* Floating Mobile Glass Bottom Navigation */}
+        <BottomNav />
       </div>
 
-      {/* Mobile Bottom Bar Navigation */}
-      <BottomNav />
-
-      {/* Global Quick Add Modal */}
+      {/* Global Quick Add Bottom Sheet Modal */}
       <QuickAddModal />
 
-      {/* Global Application Settings Modal */}
+      {/* Global Settings Modal */}
       <SettingsModal />
 
-      {/* Passcode PIN Lock Screen */}
+      {/* PIN Lock Screen */}
       <PinLockScreen />
     </div>
   );
