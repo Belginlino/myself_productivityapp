@@ -203,8 +203,8 @@ export const EditTaskModal: React.FC = () => {
           </div>
 
           {/* Date & Time Picker */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="min-w-0">
               <label className="block text-xs font-bold text-[#A8B3C7] uppercase tracking-wider mb-2 flex items-center gap-1.5">
                 <Calendar className="w-3.5 h-3.5" /> Date
               </label>
@@ -212,10 +212,10 @@ export const EditTaskModal: React.FC = () => {
                 type="date"
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
-                className="w-full px-3.5 py-3 rounded-2xl border border-white/10 bg-[#1B2435] text-xs font-semibold text-white focus:outline-none focus:border-[#C9F48A]"
+                className="w-full min-w-0 px-3.5 py-3 rounded-2xl border border-white/10 bg-[#1B2435] text-xs font-semibold text-white focus:outline-none focus:border-[#C9F48A]"
               />
             </div>
-            <div>
+            <div className="min-w-0">
               <label className="block text-xs font-bold text-[#A8B3C7] uppercase tracking-wider mb-2 flex items-center gap-1.5">
                 <Clock className="w-3.5 h-3.5" /> Time
               </label>

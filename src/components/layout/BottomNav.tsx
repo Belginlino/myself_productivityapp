@@ -7,11 +7,11 @@ export const BottomNav: React.FC = () => {
   const { activeTab, setActiveTab, toggleQuickAdd, toggleSettings } = useAppStore();
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-40 bg-[#1B2435]/90 backdrop-blur-2xl border-t border-white/10 px-4 py-2 flex items-center justify-around shadow-2xl">
+    <div className="fixed bottom-0 left-0 right-0 z-40 bg-[#1B2435]/90 backdrop-blur-2xl border-t border-white/10 px-2 sm:px-4 py-2 flex items-center justify-around shadow-2xl">
       {/* Home Tab */}
       <button
         onClick={() => setActiveTab('home')}
-        className={`relative flex flex-col items-center gap-1 text-[10px] font-bold py-1.5 px-3.5 rounded-2xl transition-all ${
+        className={`relative flex flex-col items-center gap-1 text-[10px] font-bold py-1.5 px-2 sm:px-3.5 rounded-2xl transition-all ${
           activeTab === 'home' ? 'text-[#C9F48A]' : 'text-[#A8B3C7] hover:text-white'
         }`}
       >
@@ -29,7 +29,7 @@ export const BottomNav: React.FC = () => {
       {/* Tasks Tab */}
       <button
         onClick={() => setActiveTab('tasks')}
-        className={`relative flex flex-col items-center gap-1 text-[10px] font-bold py-1.5 px-3.5 rounded-2xl transition-all ${
+        className={`relative flex flex-col items-center gap-1 text-[10px] font-bold py-1.5 px-2 sm:px-3.5 rounded-2xl transition-all ${
           activeTab === 'tasks' ? 'text-[#C9F48A]' : 'text-[#A8B3C7] hover:text-white'
         }`}
       >
@@ -48,7 +48,7 @@ export const BottomNav: React.FC = () => {
       <motion.button
         whileTap={{ scale: 0.9 }}
         onClick={() => toggleQuickAdd(true)}
-        className="-mt-7 w-13 h-13 rounded-full bg-[#C9F48A] text-[#1B2435] shadow-glow-accent flex items-center justify-center font-extrabold shrink-0 border-4 border-[#1B2435]"
+        className="-mt-7 w-12 h-12 sm:w-13 sm:h-13 rounded-full bg-[#C9F48A] text-[#1B2435] shadow-glow-accent flex items-center justify-center font-extrabold shrink-0 border-4 border-[#1B2435]"
         title="Quick Add Task / Routine"
       >
         <Plus className="w-6 h-6 stroke-[2.5]" />
@@ -57,7 +57,7 @@ export const BottomNav: React.FC = () => {
       {/* Routine Tab */}
       <button
         onClick={() => setActiveTab('routines')}
-        className={`relative flex flex-col items-center gap-1 text-[10px] font-bold py-1.5 px-3.5 rounded-2xl transition-all ${
+        className={`relative flex flex-col items-center gap-1 text-[10px] font-bold py-1.5 px-2 sm:px-3.5 rounded-2xl transition-all ${
           activeTab === 'routines' ? 'text-[#C9F48A]' : 'text-[#A8B3C7] hover:text-white'
         }`}
       >
@@ -75,7 +75,7 @@ export const BottomNav: React.FC = () => {
       {/* Settings Tab */}
       <button
         onClick={() => toggleSettings(true)}
-        className="relative flex flex-col items-center gap-1 text-[10px] font-bold py-1.5 px-3.5 rounded-2xl transition-all text-[#A8B3C7] hover:text-white"
+        className="relative flex flex-col items-center gap-1 text-[10px] font-bold py-1.5 px-2 sm:px-3.5 rounded-2xl transition-all text-[#A8B3C7] hover:text-white"
         title="Settings"
       >
         <Settings className="relative z-10 w-5 h-5" />

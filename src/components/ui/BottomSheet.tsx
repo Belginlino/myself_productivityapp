@@ -73,7 +73,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
             )}
 
             {/* Content */}
-            <div className="p-6 overflow-y-auto custom-scrollbar flex-1">{children}</div>
+            <div className="p-4 sm:p-6 overflow-y-auto custom-scrollbar flex-1">{children}</div>
           </motion.div>
         </div>
       )}
