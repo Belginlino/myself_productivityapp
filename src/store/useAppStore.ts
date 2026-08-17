@@ -5,7 +5,7 @@ import { UserProfile, AppSettings, ThemeMode, NotificationItem, TaskItem } from 
 interface AppState {
   profile: UserProfile;
   settings: AppSettings;
-  activeTab: 'home' | 'tasks' | 'routines';
+  activeTab: 'home' | 'tasks' | 'routines' | 'pomodoro';
   isQuickAddOpen: boolean;
   isSettingsOpen: boolean;
   notifications: NotificationItem[];
@@ -13,7 +13,8 @@ interface AppState {
   editingTask: TaskItem | null;
 
   // Actions
-  setActiveTab: (tab: 'home' | 'tasks' | 'routines') => void;
+  setActiveTab: (tab: 'home' | 'tasks' | 'routines' | 'pomodoro') => void;
+
   setTheme: (theme: ThemeMode) => void;
   toggleQuickAdd: (open?: boolean) => void;
   toggleSettings: (open?: boolean) => void;

@@ -5,6 +5,7 @@ import {
   Flame,
   CheckSquare,
   Clock,
+  Timer,
   Plus,
   Mic,
   ArrowRight,
@@ -15,8 +16,10 @@ import {
 import { useTaskStore } from '../../store/useTaskStore';
 import { useRoutineStore } from '../../store/useRoutineStore';
 import { useAppStore } from '../../store/useAppStore';
+import { usePomodoroStore } from '../../store/usePomodoroStore';
 import { ProgressRing } from '../../components/ui/ProgressRing';
 import { TaskCard } from '../tasks/TaskCard';
+
 
 interface HomeViewProps {
   onOpenAddTask?: () => void;
@@ -30,6 +33,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const { tasks } = useTaskStore();
   const { routines, streakData } = useRoutineStore();
   const { profile, toggleQuickAdd, setActiveTab } = useAppStore();
+  const { completedTodayCount, settings: pomodoroSettings } = usePomodoroStore();
 
   const todayStr = format(new Date(), 'yyyy-MM-dd');
   const todayTasks = tasks.filter((t) => !t.dueDate || t.dueDate === todayStr);
@@ -84,8 +88,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
         </motion.button>
       </div>
 
-      {/* Routine Streak & Progress Ring Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      {/* Routine Streak, Progress Ring & Pomodoro Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {/* Card 1: Streak Fire Banner */}
         <motion.div
           whileHover={{ y: -2 }}
@@ -96,18 +100,18 @@ export const HomeView: React.FC<HomeViewProps> = ({
               <Sparkles className="w-4 h-4" /> Routine Streak
             </div>
             <div className="flex items-baseline gap-2">
-              <span className="text-4xl font-extrabold text-white font-mono">
+              <span className="text-3xl font-extrabold text-white font-mono">
                 {streakData.currentStreak}
               </span>
-              <span className="text-sm font-semibold text-[#A8B3C7]">Days Active</span>
+              <span className="text-xs font-semibold text-[#A8B3C7]">Days Active</span>
             </div>
-            <p className="text-xs text-[#A8B3C7] mt-2">
-              Best Record: <span className="text-white font-bold">{streakData.longestStreak} days</span>
+            <p className="text-[11px] text-[#A8B3C7] mt-2">
+              Best: <span className="text-white font-bold">{streakData.longestStreak} days</span>
             </p>
           </div>
 
-          <div className="w-16 h-16 rounded-2xl bg-[#FF5D73]/20 flex items-center justify-center text-[#FF5D73] shadow-lg">
-            <Flame className="w-9 h-9 fill-[#FF5D73]" />
+          <div className="w-12 h-12 rounded-2xl bg-[#FF5D73]/20 flex items-center justify-center text-[#FF5D73] shadow-lg shrink-0">
+            <Flame className="w-7 h-7 fill-[#FF5D73]" />
           </div>
         </motion.div>
 
@@ -122,21 +126,45 @@ export const HomeView: React.FC<HomeViewProps> = ({
               <Clock className="w-4 h-4" /> Daily Routines
             </div>
             <h3 className="text-xl font-bold text-white">
-              {completedRoutinesToday.length}/{routines.length} Completed
+              {completedRoutinesToday.length}/{routines.length}
             </h3>
-            <p className="text-xs text-[#A8B3C7] mt-2 group-hover:text-white transition-colors flex items-center gap-1">
-              View Routine Schedule <ArrowRight className="w-3.5 h-3.5" />
+            <p className="text-[11px] text-[#A8B3C7] mt-2 group-hover:text-white transition-colors flex items-center gap-1">
+              Routine Schedule <ArrowRight className="w-3 h-3" />
             </p>
           </div>
 
           <ProgressRing
             progress={routineProgressPct}
-            size={68}
-            strokeWidth={7}
+            size={58}
+            strokeWidth={6}
             color="#37C7F4"
           />
         </motion.div>
+
+        {/* Card 3: Pomodoro Focus Card */}
+        <motion.div
+          whileHover={{ y: -2 }}
+          onClick={() => setActiveTab('pomodoro')}
+          className="p-5 rounded-3xl bg-[#23324A] border border-white/10 shadow-lg flex items-center justify-between cursor-pointer group"
+        >
+          <div>
+            <div className="flex items-center gap-1.5 text-xs font-bold text-[#A855F7] uppercase tracking-wider mb-1">
+              <Timer className="w-4 h-4 text-[#A855F7]" /> Focus Timer
+            </div>
+            <h3 className="text-xl font-bold text-white">
+              {completedTodayCount * pomodoroSettings.workDuration}m Focused
+            </h3>
+            <p className="text-[11px] text-[#A8B3C7] mt-2 group-hover:text-white transition-colors flex items-center gap-1">
+              Start Focus Session <ArrowRight className="w-3 h-3" />
+            </p>
+          </div>
+
+          <div className="w-12 h-12 rounded-2xl bg-[#A855F7]/20 flex items-center justify-center text-[#A855F7] shadow-lg shrink-0">
+            <Timer className="w-7 h-7" />
+          </div>
+        </motion.div>
       </div>
+
 
       {/* Task Count Summary Pill Bar */}
       <div className="p-4 rounded-3xl bg-[#23324A] border border-white/10 flex items-center justify-between">

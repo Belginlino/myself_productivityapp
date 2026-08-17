@@ -10,6 +10,7 @@ import { PinLockScreen } from './components/common/PinLockScreen';
 import { HomeView } from './features/home/HomeView';
 import { TaskView } from './features/tasks/TaskView';
 import { RoutineView } from './features/routines/RoutineView';
+import { PomodoroView } from './features/pomodoro/PomodoroView';
 
 import { useAppStore } from './store/useAppStore';
 import { useRoutineStore } from './store/useRoutineStore';
@@ -58,6 +59,8 @@ export const App: React.FC = () => {
         return <TaskView />;
       case 'routines':
         return <RoutineView />;
+      case 'pomodoro':
+        return <PomodoroView />;
       default:
         return (
           <HomeView
@@ -67,6 +70,7 @@ export const App: React.FC = () => {
         );
     }
   };
+
 
   return (
     <div className="min-h-screen flex bg-[#1B2435] text-white selection:bg-[#C9F48A] selection:text-[#1B2435]">

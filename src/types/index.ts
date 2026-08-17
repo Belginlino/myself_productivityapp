@@ -66,3 +66,25 @@ export interface NotificationItem {
   read: boolean;
   createdAt: string;
 }
+
+export type PomodoroMode = 'work' | 'shortBreak' | 'longBreak';
+
+export interface PomodoroSettings {
+  workDuration: number; // in minutes
+  shortBreakDuration: number; // in minutes
+  longBreakDuration: number; // in minutes
+  longBreakInterval: number; // sessions before long break
+  autoStartBreaks: boolean;
+  autoStartPomodoros: boolean;
+  soundEnabled: boolean;
+}
+
+export interface PomodoroSession {
+  id: string;
+  mode: PomodoroMode;
+  durationMinutes: number;
+  completedAt: string;
+  taskId?: string;
+  taskTitle?: string;
+}
+

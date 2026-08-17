@@ -13,11 +13,14 @@ import {
   Square,
   AlertCircle,
   FileText,
+  Timer,
 } from 'lucide-react';
 import { TaskItem } from '../../types';
 import { useTaskStore } from '../../store/useTaskStore';
 import { useAppStore } from '../../store/useAppStore';
+import { usePomodoroStore } from '../../store/usePomodoroStore';
 import { format12Hour } from '../../utils/timeUtils';
+
 
 interface TaskCardProps {
   task: TaskItem;
@@ -26,8 +29,10 @@ interface TaskCardProps {
 
 export const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit }) => {
   const { toggleTaskComplete, deleteTask } = useTaskStore();
-  const { setEditingTask } = useAppStore();
+  const { setEditingTask, setActiveTab } = useAppStore();
+  const { setSelectedTaskId, setMode } = usePomodoroStore();
   const [showMenu, setShowMenu] = useState(false);
+
 
   // Determine status
   const isCompleted = task.status === 'completed';
@@ -139,6 +144,17 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit }) => {
                           <CheckSquare className="w-4 h-4 text-emerald-400" /> Mark Done
                         </>
                       )}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setSelectedTaskId(task.id);
+                        setMode('work');
+                        setActiveTab('pomodoro');
+                        setShowMenu(false);
+                      }}
+                      className="flex items-center gap-2 w-full px-3 py-2 rounded-xl hover:bg-white/10 text-left transition-colors"
+                    >
+                      <Timer className="w-4 h-4 text-purple-400" /> Start Focus
                     </button>
                     <button
                       onClick={() => {

@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Home, CheckSquare, Clock, LogOut, Cloud, Mail, Settings } from 'lucide-react';
+import { Home, CheckSquare, Clock, Timer, LogOut, Cloud, Mail, Settings } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 import { logoutFirebase } from '../../firebase/authService';
 import { FirebaseAuthModal } from '../common/FirebaseAuthModal';
 
-export const navItems: { id: 'home' | 'tasks' | 'routines'; label: string; icon: any }[] = [
+export const navItems: { id: 'home' | 'tasks' | 'routines' | 'pomodoro'; label: string; icon: any }[] = [
   { id: 'home', label: 'Home', icon: Home },
   { id: 'tasks', label: 'Tasks Timeline', icon: CheckSquare },
   { id: 'routines', label: 'Daily Routine', icon: Clock },
+  { id: 'pomodoro', label: 'Pomodoro Focus', icon: Timer },
 ];
+
 
 export const Sidebar: React.FC = () => {
   const { activeTab, setActiveTab, profile, settings, toggleSettings } = useAppStore();
